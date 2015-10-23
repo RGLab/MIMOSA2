@@ -149,7 +149,7 @@ We can plot the results.
 Boxplot(obj=fit,truth=s$truth)
 ```
 
-![](/Users/gfinak/Dropbox (Gottardo Lab)/GoTeam/Projects/MIMOSA2/MIMOSA2_files/figure-html/unnamed-chunk-4-1.png) 
+![](MIMOSA2/MIMOSA2_files/figure-html/unnamed-chunk-4-1.png) 
 
 We have two false positives, and three false negatives.
 
@@ -169,7 +169,7 @@ ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ## Smoothing formula not specified. Using: y ~ qss(x, lambda = 1)
 ```
 
-![](/Users/gfinak/Dropbox (Gottardo Lab)/GoTeam/Projects/MIMOSA2/MIMOSA2_files/figure-html/unnamed-chunk-5-1.png) 
+![](MIMOSA2_files/figure-html/unnamed-chunk-5-1.png) 
 
 The ROC curves show that MIMOSA2 performs much better than a one-sided test for a difference in odds ratios. 
 
