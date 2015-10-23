@@ -149,7 +149,7 @@ We can plot the results.
 Boxplot(obj=fit,truth=s$truth)
 ```
 
-![](MIMOSA2/MIMOSA2_files/figure-html/unnamed-chunk-4-1.png) 
+![](MIMOSA2_files/figure-html/unnamed-chunk-4-1.png) 
 
 We have two false positives, and three false negatives.
 
