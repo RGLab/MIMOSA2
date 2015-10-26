@@ -4,10 +4,12 @@
 \alias{ROCPlot}
 \title{Plot ROCs using ggplot}
 \usage{
-ROCPlot(R)
+ROCPlot(R, lambda = 1)
 }
 \arguments{
 \item{R}{\code{matrix} output of \code{ROC()}}
+
+\item{lambda}{\code{numeric} smoothing. Default 1}
 }
 \description{
 Plot ROCs using ggplot

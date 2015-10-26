@@ -12,6 +12,8 @@ simulate_MIMOSA2(effect = 5e-04, phi = 10000, P = 100)
 \item{phi}{\code{numeric} integer, the precision.}
 
 \item{P}{\code{numeric} number of subjects.}
+
+\item{seed}{\code{numeric} random seed}
 }
 \value{
 \code{list} with components "Ntot" "ns0" "nu0" "ns1" "nu1" "truth"

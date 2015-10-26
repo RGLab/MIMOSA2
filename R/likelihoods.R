@@ -15,30 +15,32 @@
 bbll = function(par, n, k) {
   alpha = invlogit(par[1]) * exp(par[2])
   beta = (1 - invlogit(par[1])) * exp(par[2])
-  lgamma(k + alpha) + lgamma(n - k + beta) - 
+   lgamma(k + alpha) + lgamma(n - k + beta) -
     lgamma(n + alpha + beta) +
-    lgamma(alpha + beta) - lgamma(alpha) - 
+    lgamma(alpha + beta) - lgamma(alpha) -
     lgamma(beta)
 }
 
-
+const = function(n,k){
+  lgamma(n+1)-lgamma(k+1)-lgamma(n-k+1)
+}
 
 #' Model component 1
-#' 
-#' @description Represents a vaccine-specific response where the baseline response may be positive, but 
+#'
+#' @description Represents a vaccine-specific response where the baseline response may be positive, but
 #' lower than the post-vaccine response. Log-Likelihood for the model component where all p's are different.
 #' @details The model hyperparameters are different for condition 1 treatment s, condition 0 treatment s, and condition treatment u.
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @seealso \link{bbll} \link{MIMOSA2}
 ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  bbll(par[1:2], Ntot[, "ns1"], ns1) + 
-    bbll(par[c(5, 6)],  Ntot[, "nu1"] + 
-           Ntot[, "nu0"], nu1 + nu0) + 
+  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
+  bbll(par[1:2], Ntot[, "ns1"], ns1) +
+    bbll(par[c(5, 6)],  Ntot[, "nu1"]+Ntot[, "nu0"], nu1 + nu0) +
     bbll(par[c(3, 4)],  Ntot[, "ns0"], ns0)
 }
 
@@ -46,69 +48,73 @@ ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #' @description Represents non-responders.
 #' Log-Likelihood where all stims are equal to unstim.
 #' @details The model hyperparameters are shared across treatments and conditions and are equal to the control.
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @seealso \link{bbll} \link{MIMOSA2}
 ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
   bbll(par[c(5, 6)], rowSums(Ntot), ns1 + nu1 + ns0 + nu0)
 }
 
 #' Model component 3
-#' @description Represents a non-responder where there may be a response in condition 0 but not in condition 1. 
+#' @description Represents a non-responder where there may be a response in condition 0 but not in condition 1.
 #' @details Log-Likelihood for non-response where s0 is a response but s1 is not
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @seealso \link{bbll} \link{MIMOSA2}
 ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  bbll(par[c(3, 4)], Ntot[, "ns0"] , ns0) + 
-    bbll(par[c(5, 6)],  Ntot[, "ns1"] + 
-           Ntot[, "nu1"] + Ntot[, "nu0"], 
-         ns1 + nu1 + nu0)
+  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
+  bbll(par[c(3, 4)], Ntot[, "ns0"] , ns0) +
+   bbll(par[c(5, 6)],  Ntot[, "ns1"] +
+         Ntot[, "nu1"] + Ntot[, "nu0"],
+        ns1 + nu1 + nu0)
 }
 
 #' Model component 4
 #' @description Represents non-specific response, where the two conditions are responses but are equal to each other.
 #' @details Likelihood for non-specific response where stims are equal and generated from mu[s0]
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @seealso \link{bbll} \link{MIMOSA2}
 ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  bbll(par[c(3, 4)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1 + ns0) + 
+  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
+  bbll(par[c(3, 4)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1 + ns0) +
     bbll(par[c(5, 6)],  Ntot[, "nu1"] + Ntot[, "nu0"], nu1 + nu0)
-}
+  }
 
 #' Model component 5
 #' @description Likelihood for response where stims at post-vaccine and no response at baseline mu[s0]
 #' @details Represents a vaccine specific response where there is no response at condition 0, but a response at condition 1.
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @seealso \link{bbll} \link{MIMOSA2}
 ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) + 
-    bbll(par[c(5, 6)], Ntot[,"ns0"] + Ntot[, "nu1"] + 
+  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
+  bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) +
+    bbll(par[c(5, 6)], Ntot[,"ns0"] + Ntot[, "nu1"] +
            Ntot[, "nu0"], ns0 + nu1 + nu0)
-}
+  }
 
 #' Complete data log-likelihood
 #' @details Calcualtes the complete data log-likelihood for each observation
-#' @param par vector of parameters. 
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0" 
+#' @param par vector of parameters.
+#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
 #' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
@@ -125,7 +131,7 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
 }
 
 #'Sum of the complete data log-likelihood across all observations.
-#' 
+#'
 #' @param ... all model parameters and data (par, Ntot, ns0,ns1,nu0,nu1)
 #' @param inds \code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.
 #' @param pi_est \code{numeric} the mixing proportions.
@@ -142,7 +148,7 @@ sumcll = function(..., inds, pi_est) {
 #'
 #' @return logit(p)
 #' @export
-#' @examples 
+#' @examples
 #' logit(0.5)
 logit = function (p) {
   log(p/(1 - p))
@@ -156,7 +162,7 @@ logit = function (p) {
 #'
 #' @return \code{invlogit(x)}
 #' @export
-#' @examples 
+#' @examples
 #' invlogit(0)
 invlogit = function(x) {
   1/(1 + exp(-x))

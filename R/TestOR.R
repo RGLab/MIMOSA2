@@ -48,7 +48,7 @@ ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
 #' @return \code{matrix} with columns "FPR" "TPR" and "Method"
 #' @export
 #' @seealso \link{MIMOSA2}
-#' @examples 
+#' @examples
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
@@ -72,30 +72,36 @@ ROC = function(or_test, z, truth) {
 #' @name ROCPlot
 #' @details uses the output of ROC
 #' @param R \code{matrix} output of \code{ROC()}
+#' @param lambda \code{numeric} smoothing. Default 1
 #' @export
 #' @seealso \link{MIMOSA2}
-#' @examples 
+#' @examples
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' roc = ROC(or_test = or_result, z = R$z, truth = s$truth)
 #' ROCPlot(roc)
-ROCPlot = function(R) {
-  ggplot(R) +
+ROCPlot = function(R,lambda=1) {
+  p = ggplot(R) +
     aes_string(x = "FPR", y = "TPR", color = "Method") +
     theme_bw() +
     theme(legend.position = "bottom") +
     scale_color_brewer(type = "qual", palette = 6) +
     scale_x_continuous("False Positive Rate") +
-    scale_y_continuous("True Positive Rate") +
-    stat_quantile(
+    scale_y_continuous("True Positive Rate")
+
+  if(any(colnames(R)%in%"s")){
+    p+stat_quantile(
       method = "rqss",
-      quantiles = c(0.05, 0.95),
+      quantiles = c(0.025, 0.975),
       linetype = "dashed",
-      lambda = 1
+      lambda = lambda
     ) + stat_quantile(method = "rqss",
                       quantiles = c(0.5),
-                      lambda = 1) + theme(axis.text.x = element_text(angle = 45))
+                      lambda = lambda) + theme(axis.text.x = element_text(angle = 45))
+  }else{
+    p+geom_line()
+  }
 }
 
 #' Boxplots from MIMOSA fit
@@ -105,7 +111,7 @@ ROCPlot = function(R) {
 #' @return ggplot grob
 #' @export
 #' @seealso \link{MIMOSA2}
-#' @examples 
+#' @examples
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' Boxplot(obj = R,truth = s$truth)
@@ -134,11 +140,11 @@ Boxplot = function(obj,truth){
 })
 }
 
-roc = function (p, truth) 
+roc = function (p, truth)
 {
   s <- seq(0, 1, l = 1000)
   table <- t(sapply(s, function(th) {
-    prop.table(table(test = factor(p <= th, levels = c("FALSE", 
+    prop.table(table(test = factor(p <= th, levels = c("FALSE",
                                                        "TRUE")), truth = truth), margin = 2)["TRUE", ]
   }))
   colnames(table) <- c("FPR", "TPR")

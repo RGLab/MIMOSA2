@@ -2,6 +2,7 @@
 
 export(Boxplot)
 export(MIMOSA2)
+export(MIMOSA2fit)
 export(ORTest)
 export(ROC)
 export(ROCPlot)

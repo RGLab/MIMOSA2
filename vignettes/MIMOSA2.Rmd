@@ -84,6 +84,7 @@ library(ggplot2)
 We simulate from the model.
 
 ```{r sim}
+set.seed(101)
 s = simulate_MIMOSA2()
 ```
 
@@ -102,7 +103,7 @@ The data is input into the `MIMOSA2` modeling function.
 
 
 ```{r}
-fit = MIMOSA2(s$Ntot,s$ns1,s$nu1,s$ns0,s$nu0)
+fit = MIMOSA2(Ntot=s$Ntot,ns1=s$ns1,nu1=s$nu1,ns0=s$ns0,nu0=s$nu0,tol=1e-10)
 ```
 
 The output of MIMOSA2 is a list with components `names(fit)`. The "z" is matrix with the probability that each observation arises from each component. "inds" holds the hard assignment of each observation to each model component. The hard assignments are done hierarchically, so if the probability that an observation arises from the two responder components is greater than the probability it arises from the non-responder or non-specific response components, then it is assigned to the response component with the greatest probability.
@@ -119,7 +120,7 @@ We can plot the results.
 Boxplot(obj=fit,truth=s$truth)
 ```
 
-We have two false positives, and three false negatives.
+We have `sum(table(fit=colnames(fit$inds)[max.col(fit$inds)],truth = s$truth)["R",-4L])` false positives, and `sum(table(fit=colnames(fit$inds)[max.col(fit$inds)],truth = s$truth)[,4][-3])` false negatives.
 
 We can generate ROCs comparing against a standard test of odds ratios.
 
@@ -129,6 +130,51 @@ toplot = ROC(or_test=ortest, z=fit$z,truth=s$truth)
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
-The ROC curves show that MIMOSA2 performs much better than a one-sided test for a difference in odds ratios. 
+The ROC curves show that MIMOSA2 performs better than a one-sided test for a difference in odds ratios. 
 
+## Multiple simulations
+
+```{r}
+library(foreach)
+library(doMC)
+library(doRNG)
+registerDoMC(cores = 7)
+set.seed(100)
+r = replicate(50,simulate_MIMOSA2())
+
+fits = foreach(i=seq_along(r), .errorhandling = "remove") %dorng% 
+{
+  x=r[,i]
+  MIMOSA2fit(
+    Ntot = x$Ntot,
+    ns1 = x$ns1 ,
+    nu1 = x$nu0,
+    ns0 = x$ns0,
+    nu0 = x$nu0,
+    tol = 1e-5,
+    restarts=5)
+}
+
+R = foreach (i = seq_along(fits), .errorhandling="remove",.combine="rbind") %dorng% {
+  x = r[, i]
+  or = ORTest(
+  Ntot = x$Ntot,
+  ns1 = x$ns1 ,
+  nu1 = x$nu0,
+  ns0 = x$ns0,
+  nu0 = x$nu0
+  )
+  data.frame(ROC(
+  or_test = or,
+  z = fits[[i]]$z,
+  truth = r[, i]$truth
+  ), s = i)
+}
+ROCPlot(R,lambda=3)
+```
+
+```{r}
+i=1
+Boxplot(fits[[i]],r[,i]$truth)
+```
 
