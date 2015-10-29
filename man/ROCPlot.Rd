@@ -21,7 +21,7 @@ uses the output of ROC
 s = simulate_MIMOSA2()
 R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-roc = ROC(or_test = or_result, z = R$z, truth = s$truth)
+roc = ROC(or_test = or_result, fit=R, truth = s$truth=="R")
 ROCPlot(roc)
 }
 \seealso{

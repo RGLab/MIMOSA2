@@ -4,10 +4,20 @@
 \alias{initialize}
 \title{Initialize model parameters}
 \usage{
-initialize(P)
+initialize(P, Ntot, ns1, nu1, ns0, nu0, random = FALSE, K)
 }
 \arguments{
 \item{P}{\code{numeric} The number of observations / subjects.}
+
+\item{ns1}{}
+
+\item{nu1}{}
+
+\item{ns0}{}
+
+\item{nu0}{}
+
+\item{Nott}{}
 }
 \value{
 \code{list} of initialized parameter estimates with components \code{inds} \code{theta_hat} \code{pi_est}.

@@ -2,31 +2,11 @@
 % Please edit documentation in R/likelihoods.R
 \name{ll1}
 \alias{ll1}
-\title{Model component 1}
+\title{1. all different}
 \usage{
 ll1(par, Ntot, ns1, nu1, ns0, nu0)
 }
-\arguments{
-\item{par}{vector of parameters.}
-
-\item{Ntot}{\code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"}
-
-\item{ns1}{\code{numeric} integer vector of successes in condition 1 treatment s.}
-
-\item{nu1}{\code{numeric} integer vector of successes in condition 1 treatment u.}
-
-\item{ns0}{\code{numeric} integer vector of successes in condition 0 treatment s.}
-
-\item{nu0}{\code{numeric} integer vector of successes in condition 0 treatment u.}
-}
 \description{
-Represents a vaccine-specific response where the baseline response may be positive, but
-lower than the post-vaccine response. Log-Likelihood for the model component where all p's are different.
-}
-\details{
-The model hyperparameters are different for condition 1 treatment s, condition 0 treatment s, and condition treatment u.
-}
-\seealso{
-\link{bbll} \link{MIMOSA2}
+1. all different
 }
 

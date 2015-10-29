@@ -2,30 +2,11 @@
 % Please edit documentation in R/likelihoods.R
 \name{ll3}
 \alias{ll3}
-\title{Model component 3}
+\title{3. s1=s0}
 \usage{
 ll3(par, Ntot, ns1, nu1, ns0, nu0)
 }
-\arguments{
-\item{par}{vector of parameters.}
-
-\item{Ntot}{\code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"}
-
-\item{ns1}{\code{numeric} integer vector of successes in condition 1 treatment s.}
-
-\item{nu1}{\code{numeric} integer vector of successes in condition 1 treatment u.}
-
-\item{ns0}{\code{numeric} integer vector of successes in condition 0 treatment s.}
-
-\item{nu0}{\code{numeric} integer vector of successes in condition 0 treatment u.}
-}
 \description{
-Represents a non-responder where there may be a response in condition 0 but not in condition 1.
-}
-\details{
-Log-Likelihood for non-response where s0 is a response but s1 is not
-}
-\seealso{
-\link{bbll} \link{MIMOSA2}
+3. s1=s0
 }
 

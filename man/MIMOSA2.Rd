@@ -18,6 +18,10 @@ MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
 \item{nu0}{\code{numeric} integer vector of successes in condition 0 treatment u.}
 
 \item{tol}{\code{numeric} tolerance for stopping criteria, change in relative log-likelihood.}
+
+\item{inds}{\code{matrix} numeric indicator of assignments to initialize with.}
+
+\item{maxit}{\code{numeric} maximum number of iterations}
 }
 \value{
 \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}

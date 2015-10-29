@@ -43,8 +43,8 @@ ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
 #'Generate matrix for ROC plot.
 #'
 #' @param or_test output of \code{ORTest}
-#' @param z output of MIMOSA2 \code{z} component
-#' @param truth \code{vector} of ground truth of length number of observations where response = "R".
+#' @param fit output of MIMOSA2
+#' @param truth \code{vector} of ground truth of length number of observations where response = "TRUE".
 #' @return \code{matrix} with columns "FPR" "TPR" and "Method"
 #' @export
 #' @seealso \link{MIMOSA2}
@@ -52,11 +52,13 @@ ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-#' ROC(or_test = or_result, z = R$z, truth = s$truth)
-ROC = function(or_test, z, truth) {
+#' ROC(or_test = or_result, fit=R, truth = s$truth=="R")
+ROC = function(or_test, fit, truth) {
+  rcomps=c(1:4)
+  #responder =  (fit$ps1_hat>fit$pu1_hat) & ((fit$ps1_hat-fit$pu1_hat) > (fit$ps0_hat-fit$pu0_hat))&((fit$ps1_hat-fit$ps0_hat) > (fit$pu1_hat-fit$pu0_hat))
   toplot = data.table(rbind(
-    roc(or_test, truth == "R"),
-    roc(1 - rowSums(z[, c(1, 5)]), truth == "R")
+  roc(or_test, truth),#&responder),
+    roc(1 - rowSums(fit$z[, rcomps,drop=FALSE]), truth)#&responder)
   ),
   Method = gl(
     n = 2,
@@ -79,7 +81,7 @@ ROC = function(or_test, z, truth) {
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-#' roc = ROC(or_test = or_result, z = R$z, truth = s$truth)
+#' roc = ROC(or_test = or_result, fit=R, truth = s$truth=="R")
 #' ROCPlot(roc)
 ROCPlot = function(R,lambda=1) {
   p = ggplot(R) +
@@ -93,7 +95,7 @@ ROCPlot = function(R,lambda=1) {
   if(any(colnames(R)%in%"s")){
     p+stat_quantile(
       method = "rqss",
-      quantiles = c(0.025, 0.975),
+      quantiles = c(0.05, 0.95),
       linetype = "dashed",
       lambda = lambda
     ) + stat_quantile(method = "rqss",
@@ -120,23 +122,11 @@ Boxplot = function(obj,truth){
   ggplot(data.table(
     contrast = ps1_hat - pu1_hat - ps0_hat + pu0_hat,
     truth,
-    inds = max.col(z)
-  )) + geom_boxplot(outlier.colour = NA, aes(x = truth, y = contrast, fill =
-                                               factor(inds))) + geom_jitter(
-                                                 aes(x = truth, y = contrast, fill = factor(inds)),
-                                                 position = position_jitterdodge(),
+    inds = max.col(inds)
+  )) + geom_boxplot(outlier.colour = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7"),labels=c("R1","R2","R3","R4","NR1","NR2","NSR")))) + geom_jitter(
+                                                 aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7"),labels=c("R1","R2","R3","R4","NR1","NR2","NSR"))),position=position_jitterdodge(),
                                                  show.legend = FALSE
-                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_fill_discrete(
-                                                 "Model Component",
-                                                 labels = c(
-                                                   "R1",
-                                                   "NR",
-                                                   "NSR1",
-                                                   "NSR2",
-                                                   "R2"
-                                                 ),
-                                                 limits = c(1:5)
-                                               ) + scale_x_discrete("True class")
+                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(3)),labels=c("R1","R2","R3","R4","NR1","NR2","NSR"),limits=c("R1","R2","R3","R4","NR1","NR2","NSR"))
 })
 }
 

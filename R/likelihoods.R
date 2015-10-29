@@ -25,91 +25,66 @@ const = function(n,k){
   lgamma(n+1)-lgamma(k+1)-lgamma(n-k+1)
 }
 
-#' Model component 1
-#'
-#' @description Represents a vaccine-specific response where the baseline response may be positive, but
-#' lower than the post-vaccine response. Log-Likelihood for the model component where all p's are different.
-#' @details The model hyperparameters are different for condition 1 treatment s, condition 0 treatment s, and condition treatment u.
-#' @param par vector of parameters.
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
-#' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
-#' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
-#' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
-#' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
-#' @seealso \link{bbll} \link{MIMOSA2}
+#' 1. all different
 ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
-  bbll(par[1:2], Ntot[, "ns1"], ns1) +
-    bbll(par[c(5, 6)],  Ntot[, "nu1"]+Ntot[, "nu0"], nu1 + nu0) +
-    bbll(par[c(3, 4)],  Ntot[, "ns0"], ns0)
+  bbll(par[c(1:2)], Ntot[, "ns1"], ns1) +
+    bbll(par[c(3,2)],  Ntot[, "ns0"], ns0)+
+    bbll(par[c(5,2)],  Ntot[, "nu1"], nu1)+
+    bbll(par[c(7,2)],   Ntot[,"nu0"],nu0)
 }
 
-#' Model component 2
-#' @description Represents non-responders.
-#' Log-Likelihood where all stims are equal to unstim.
-#' @details The model hyperparameters are shared across treatments and conditions and are equal to the control.
-#' @param par vector of parameters.
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
-#' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
-#' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
-#' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
-#' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
-#' @seealso \link{bbll} \link{MIMOSA2}
+#' 2. s0=u0
 ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
-  bbll(par[c(5, 6)], rowSums(Ntot), ns1 + nu1 + ns0 + nu0)
-}
-
-#' Model component 3
-#' @description Represents a non-responder where there may be a response in condition 0 but not in condition 1.
-#' @details Log-Likelihood for non-response where s0 is a response but s1 is not
-#' @param par vector of parameters.
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
-#' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
-#' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
-#' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
-#' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
-#' @seealso \link{bbll} \link{MIMOSA2}
-ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
-  bbll(par[c(3, 4)], Ntot[, "ns0"] , ns0) +
-   bbll(par[c(5, 6)],  Ntot[, "ns1"] +
-         Ntot[, "nu1"] + Ntot[, "nu0"],
-        ns1 + nu1 + nu0)
-}
-
-#' Model component 4
-#' @description Represents non-specific response, where the two conditions are responses but are equal to each other.
-#' @details Likelihood for non-specific response where stims are equal and generated from mu[s0]
-#' @param par vector of parameters.
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
-#' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
-#' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
-#' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
-#' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
-#' @seealso \link{bbll} \link{MIMOSA2}
-ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
-  bbll(par[c(3, 4)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1 + ns0) +
-    bbll(par[c(5, 6)],  Ntot[, "nu1"] + Ntot[, "nu0"], nu1 + nu0)
-  }
-
-#' Model component 5
-#' @description Likelihood for response where stims at post-vaccine and no response at baseline mu[s0]
-#' @details Represents a vaccine specific response where there is no response at condition 0, but a response at condition 1.
-#' @param par vector of parameters.
-#' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
-#' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
-#' @param nu1 \code{numeric} integer vector of successes in condition 1 treatment u.
-#' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
-#' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
-#' @seealso \link{bbll} \link{MIMOSA2}
-ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  const(Ntot[,"ns1"],ns1)+const(Ntot[,"ns0"],ns0)+const(Ntot[,"nu1"],nu1)+const(Ntot[,"nu0"],nu0)+
   bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) +
-    bbll(par[c(5, 6)], Ntot[,"ns0"] + Ntot[, "nu1"] +
-           Ntot[, "nu0"], ns0 + nu1 + nu0)
-  }
+    bbll(par[c(5,2)], Ntot[, "nu1"],  nu1)+
+  bbll(par[c(7,2)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)
+}
+
+#' 3. s1=s0
+ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+    bbll(par[c(1,2)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1+ns0)+
+    bbll(par[c(5,2)], Ntot[, "ns0"],nu1)+
+    bbll(par[c(7,2)],Ntot[, "nu1"], nu0)
+}
+
+#' 4. u1=u0
+ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(1,2)],(Ntot[,c("ns1")]),ns1)+
+    bbll(par[c(7,2)], rowSums(Ntot[,c("nu0","nu1")]), nu0 + nu1) +
+    bbll(par[c(3,2)],(Ntot[,c("ns0")]),ns0)
+}
+#' 5.
+ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(5,2)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
+    bbll(par[c(7,2)], rowSums(Ntot[,c("ns0","nu0")]), ns0 + nu0)
+}
+#' 6. s1=u1
+ll6 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(5,2)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
+    bbll(par[c(7,2)], (Ntot[,c("nu0")]), nu0) +
+    bbll(par[c(3,2)], (Ntot[,c("ns0")]), ns0)
+}
+#' 7.s1=s0 u1=u0
+ll7 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(3,2)],rowSums(Ntot[,c("ns1","ns0")]),ns1+ns0)+
+    bbll(par[c(7,2)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)
+}
+
+llm1 = function(par,Ntot,ns,nu){
+  const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
+    bbll(par[c(1,2)],Ntot[,"nu"],nu)+
+    bbll(par[c(3,4)],Ntot[,"ns"],ns)
+}
+llm0 = function(par,Ntot,ns,nu){
+  const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
+    bbll(par[c(1,2)],Ntot[,"ns"]+Ntot[,"nu"],ns+nu)
+}
+cllm0m1 = function(par,Ntot,ns,nu){
+  cbind(llm0(...),llm1(...))
+}
+sumcllm0m1 = function(..., inds, pi_est) {
+  sum(inds * t(log(pi_est) + t(cll(...))))
+}
 
 #' Complete data log-likelihood
 #' @details Calcualtes the complete data log-likelihood for each observation
@@ -122,11 +97,13 @@ ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #' @seealso \link{bbll} \link{MIMOSA2}
 cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
   cbind(
-    ll1(par, Ntot, ns1, nu1, ns0, nu0),
-    ll2(par, Ntot, ns1, nu1, ns0, nu0),
-    ll3(par, Ntot, ns1, nu1, ns0, nu0),
-    ll4(par, Ntot, ns1, nu1, ns0, nu0),
-    ll5(par, Ntot, ns1, nu1, ns0, nu0)
+    ll1(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll2(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll3(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll4(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll5(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll6(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    ll7(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0)
   )
 }
 

@@ -1,6 +1,9 @@
 #' Simulate data for MIMOSA2 model, ICS with baseline.
 #'
-#' @param effect \code{numeric} effect size for ps1 - pu1 - ps0 - pu0
+#' @param effect \code{numeric} effect size for ps1 - pu1 - ps0 + pu0
+#' @param bg_effect \code{numeric} effect size for background pu0-pu1
+#' @param baseline_stim \code{numeric} baseline stimulation effect
+#' @param baseline_background \code{numeric} baseline background effect
 #' @param phi \code{numeric} integer, the precision.
 #' @param P \code{numeric} number of subjects.
 #' @param seed \code{numeric} random seed
@@ -10,15 +13,16 @@
 #' @seealso \link{MIMOSA2}
 #' @examples
 #' s = simulate_MIMOSA2()
-simulate_MIMOSA2 = function(effect = 5e-4,
-                    phi = 10000,
+simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,baseline_background=1e-4,
+                    phi = 5000,
                     P = 100) {
 
   #' Run 100 simulations, dropping any errors (i.e. simulations that error out)
-  K = 5
-
+  K = 8
+  n=rep(0,K)
+  while(sum(n)!=P|any(P==0)){
   #'proportion of vaccine specific responses
-  pis = prop.table(rgamma(K, 1))
+  pis = prop.table(prop.table(runif(K)))
   pis = sort(pis, decreasing = TRUE)
   R = NULL
   D = 4
@@ -28,40 +32,42 @@ simulate_MIMOSA2 = function(effect = 5e-4,
   Ntot = matrix(round(runif(P * D, 50000, 100000)), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
-  MS0 = 2.5e-4
+  MS0 = baseline_stim
 
   #' Mean of hyperprior (stimulated time 1) $\alpha/(\alphaa+\beta)$
   MS1 = MS0 + effect
 
   #' Non Stimulated
-  MU = 1e-4
+  MU1 = baseline_background
+  MU0 = baseline_background + bg_effect
 
   #'Precision of hyperprior
   #'$\alpha+\beta = \phi$
   PHI = phi
 
-  #' When there is a response ps1 > ps0 & ps1 > pu
-  #' When there is no response ps0 = ps1 = pu
-  #' When there is no vaccine-specific
-  #' response ps0 = ps1, and one or both of
-  #' ps1>pu,   ps0 > pu may also be true
+  #' There are 8 model components.
+  #' 1. all different
+  #' 2. s0=u0
+  #' 3. s1 = s0
+  #' 4. u1 = u0
+  #' 5. s0 = u0, s1 = u1
+  #' 6. s1 = u1
+  #' 7. s1 = u1 = s0 = u0
+  #' 8. s1 = s0, u1 = u0
 
   #' number of responders / non-responders / non-specific responders
-  nresp = round(P * pis[1])
-  n_non_resp = round(pis[2] * P)
-  n_novaccine1 = round(P * pis[3])
-  n_novaccine2 = round(P * pis[4])
-  nresp2 = round(P - (nresp+n_non_resp+n_novaccine1+n_novaccine2))
-
-  if((nresp2+nresp+n_non_resp+n_novaccine1+n_novaccine2)!=P){
-    stop("try again")
+  n = round(P * pis)
   }
-  #'Simulate responders
-  ps0 = rep(0, nresp)
-  ps1 = rep(0, nresp)
-  pu =  rbeta(nresp, MU * PHI, (1 - MU) * PHI)
-  while (any(ps1 <= ps0 | ps1 < pu)) {
-    bar = ps1 <= ps0 | ps1 < pu
+
+  PS0=PS1=PU0=PU1=NULL
+  #'Simulate from component 1
+  k=1
+  ps0 = rep(0, n[k])
+  ps1 = rep(0, n[k])
+  pu1 = rbeta(n[k], MU1 * PHI, (1 - MU1) * PHI)
+  pu0 = rbeta(n[k], MU0 * PHI, (1-MU0) * PHI)
+  while (any(ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0)) {
+    bar = ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0
     foo = sum(bar)
     ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
     ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
@@ -69,73 +75,129 @@ simulate_MIMOSA2 = function(effect = 5e-4,
   if (effect == 0) {
     ps1 = ps0
   }
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
 
-  #'Simulate non-responders. ps0=ps1=pu
-  foo = rbeta(n_non_resp, MU * PHI, (1 - MU) * PHI)
-  ps0 = c(ps0, foo)
-  ps1 = c(ps1, foo)
-  pu =  c(pu, foo)
+  #'Simulate from component 2
+  k=2
+  pu1 = rbeta(n[k], MU1 * PHI, (1 - MU1) * PHI)
+  pu0 = rbeta(n[k], MU0 * PHI, (1 - MU0) * PHI)
+  ps0 = pu0
+  ps1 = rbeta(n[k],MS1*PHI, (1-MS1)*PHI)
 
-  #' Simulate from component 3. S0 is a response but s1 is not
-  foo = rbeta(n_novaccine1, MU * PHI, (1 - MU) * PHI)
-  bar = rbeta(n_novaccine1, MS0 * PHI, (1 - MS0) * PHI)
-  while (any(bar <= foo)) {
-    w = bar <= foo
-    l =  sum(w)
-    bar[w] = rbeta(l, MS0 * PHI, (1 - MS0) * PHI)
+  while(any(ps1-pu1 <= ps0 - pu0|ps1 <= pu1)){
+    bar = ps1-pu1 <= ps0 - pu0|ps1 <= pu1
+    foo = sum(bar)
+    ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
+    pu1[bar] = rbeta(foo, MU1 * PHI, (1 - MU1) * PHI)
   }
-  ps0 = c(ps0, bar)
-  ps1 = c(ps1, foo)
-  pu =  c(pu, foo)
 
-  #' Simulate non-specific responses
-  #' where basline = post-vaccine simulated
-  #' from hyper-prior with $\mu_{s0}$.
-  foo = rbeta(n_novaccine2, MS0 * PHI, (1 - MS0) * PHI)
-  bar = rbeta(n_novaccine2, MU * PHI, (1 - MU) * PHI)
-  while (any(foo <= bar)) {
-    w = foo <= bar
-    l =  sum(w)
-    foo[w] = rbeta(l, MS1 * PHI, (1 - MS1) * PHI)
-  }
-  ps0 = c(ps0, foo)
-  ps1 = c(ps1, foo)
-  pu = c(pu, bar)
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
 
-  #'simulate other responder group
-  baz =  rbeta(nresp2, MU * PHI, (1 - MU) * PHI)
-  foo = rbeta(nresp2, MS1 * PHI, (1 - MS1) * PHI)
-  bar = baz
-  while (any(foo <= baz)) {
-    w = foo <= baz
-    l = sum(w)
-    foo[w] = rbeta(l, MS1 * PHI, (1 - MS1) * PHI)
+
+  #' Simulate from component 3.
+  k=3
+  ps0 = ps1 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
+  pu0 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  pu1 = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
+
+  while(any(ps1-pu1 <= ps0 - pu0|ps1<=pu1| pu0<=pu1)){
+    bar = ps1-pu1 <= ps0 - pu0|ps1<=pu1| pu0<=pu1
+    foo = sum(bar)
+    pu0[bar] = rbeta(foo, MU0 * PHI, (1 - MU0) * PHI)
+    pu1[bar] = rbeta(foo, MU1 * PHI, (1 - MU1) * PHI)
   }
-  if (effect == 0) {
-    foo = bar
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+
+  #' Simulate from component 3.
+  k=4
+  pu0 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps1 = rbeta(n[k],MS1*PHI,(1-MS1)*PHI)
+  ps0 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
+
+  iter = 0
+  while(any(ps1-pu1 <= ps0 - pu0|ps1<=pu1| ps1<=ps0)){
+    bar = ps1-pu1 <= ps0 - pu0|ps1<=pu1| ps1<=ps0
+    foo = sum(bar)
+    ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
+    ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
   }
-  pu = c(pu, baz)
-  ps0 = c(ps0, bar)
-  ps1 = c(ps1, foo)
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+
+  #'simulate from component 5
+  k=5
+  ps1 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps0 = pu0 = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+
+  #'component 6
+  k=6
+  ps1 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps0  = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
+  pu0  = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  #s0 should be greater than u0
+  while(any(ps0<pu0)){
+    bar = ps0<pu0
+    foo = sum(bar)
+    ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
+    pu0[bar] = rbeta(foo, MU0 * PHI, (1 - MU0) * PHI)
+  }
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+
+  #'component 7
+  k=7
+  ps1=ps0=pu1=pu0 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+
+  #'component 8
+  k=8
+  if(n[k]>0){
+  ps0 = ps1 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
+  pu0 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  PU1=c(PU1,pu1)
+  PU0=c(PU0,pu0)
+  PS1=c(PS1,ps1)
+  PS0=c(PS0,ps0)
+}
 
   #' Simulate count observations from binomial.
   colnames(Ntot) = c("nu1", "ns1", "nu0", "ns0")
-  nu1 = rbinom(P, Ntot[, 1], pu)
-  ns1 = rbinom(P, Ntot[, 2], ps1)
-  nu0 = rbinom(P, Ntot[, 3], pu)
-  ns0 = rbinom(P, Ntot[, 4], ps0)
+  nu1 = rbinom(P, Ntot[, "nu1"], PU1)
+  ns1 = rbinom(P, Ntot[, "ns1"], PS1)
+  nu0 = rbinom(P, Ntot[, "nu0"], PU0)
+  ns0 = rbinom(P, Ntot[, "ns0"], PS0)
 
 
   #' Empirical estimates of proportions
-  pu1_hat = prop.table(cbind(Ntot[, 1], nu1), 1)[, 2]
-  ps1_hat = prop.table(cbind(Ntot[, 2], ns1), 1)[, 2]
-  pu0_hat = prop.table(cbind(Ntot[, 3], nu0), 1)[, 2]
-  ps0_hat = prop.table(cbind(Ntot[, 4], ns0), 1)[, 2]
+  pu1_hat = prop.table(cbind(Ntot[, "nu1"], nu1), 1)[, 2]
+  ps1_hat = prop.table(cbind(Ntot[, "ns1"], ns1), 1)[, 2]
+  pu0_hat = prop.table(cbind(Ntot[, "nu0"], nu0), 1)[, 2]
+  ps0_hat = prop.table(cbind(Ntot[, "ns0"], ns0), 1)[, 2]
 
   #' True response categories
   truth = rep(
-    c("R", "NR", "NV1", "NV2", "R"),
-    c(nresp, n_non_resp, n_novaccine1, n_novaccine2, nresp2)
+    c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"),
+    n
   )
   l=list("Ntot"=Ntot, "ns0"=ns0, "ns1"=ns1, "nu0"=nu0, "nu1"=nu1, "truth"=truth)
   names(l) = c("Ntot","ns0","ns1","nu0","nu1","truth")

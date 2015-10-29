@@ -4,14 +4,14 @@
 \alias{ROC}
 \title{Generate matrix for ROC plot.}
 \usage{
-ROC(or_test, z, truth)
+ROC(or_test, fit, truth)
 }
 \arguments{
 \item{or_test}{output of \code{ORTest}}
 
-\item{z}{output of MIMOSA2 \code{z} component}
+\item{fit}{output of MIMOSA2}
 
-\item{truth}{\code{vector} of ground truth of length number of observations where response = "R".}
+\item{truth}{\code{vector} of ground truth of length number of observations where response = "TRUE".}
 }
 \value{
 \code{matrix} with columns "FPR" "TPR" and "Method"
@@ -23,7 +23,7 @@ Generate matrix for ROC plot.
 s = simulate_MIMOSA2()
 R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-ROC(or_test = or_result, z = R$z, truth = s$truth)
+ROC(or_test = or_result, fit=R, truth = s$truth=="R")
 }
 \seealso{
 \link{MIMOSA2}

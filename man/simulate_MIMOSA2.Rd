@@ -4,10 +4,17 @@
 \alias{simulate_MIMOSA2}
 \title{Simulate data for MIMOSA2 model, ICS with baseline.}
 \usage{
-simulate_MIMOSA2(effect = 5e-04, phi = 10000, P = 100)
+simulate_MIMOSA2(effect = 5e-04, bg_effect = 0, baseline_stim = 0.00025,
+  baseline_background = 1e-04, phi = 5000, P = 100)
 }
 \arguments{
-\item{effect}{\code{numeric} effect size for ps1 - pu1 - ps0 - pu0}
+\item{effect}{\code{numeric} effect size for ps1 - pu1 - ps0 + pu0}
+
+\item{bg_effect}{\code{numeric} effect size for background pu0-pu1}
+
+\item{baseline_stim}{\code{numeric} baseline stimulation effect}
+
+\item{baseline_background}{\code{numeric} baseline background effect}
 
 \item{phi}{\code{numeric} integer, the precision.}
 
