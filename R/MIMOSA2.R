@@ -20,7 +20,7 @@
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
 MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRUE){
-  K=7
+  K=8
   rcomps = c(1:4)
   #' Get the number of observations from the data.
   P = nrow(Ntot)
@@ -30,9 +30,26 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRU
   ps1_hat = prop.table(cbind(Ntot[, "ns1"], ns1), 1)[, 2]
   pu0_hat = prop.table(cbind(Ntot[, "nu0"], nu0), 1)[, 2]
   ps0_hat = prop.table(cbind(Ntot[, "ns0"], ns0), 1)[, 2]
+  # normalize = function(nu1,ns1,ns0,nu0,Ntot,ps1_hat,pu1_hat,ps0_hat,pu0_hat){
+  #   md = min(median(pu1_hat),median(pu0_hat))
+  #   nu1 = pmax(round((pu1_hat-md)*Ntot[,"nu1"]),0)
+  #   ns1 = pmax(round((ps1_hat-md)*Ntot[,"ns1"]),0)
+  #   ns0 = pmax(round((ps0_hat-md)*Ntot[,"ns0"]),0)
+  #   nu0 = pmax(round((pu0_hat-md)*Ntot[,"nu0"]),0)
+  #   return(list(nu1= nu1,ns1= ns1,ns0 = ns0,nu0 = nu0))
+  # }
+  # norm = normalize(nu1,ns1,ns0,nu0,Ntot,ps1_hat,pu1_hat,ps0_hat,pu0_hat)
+  # ns1 = norm$ns1
+  # nu1 = norm$nu1
+  # nu0 = norm$nu0
+  # ns0 = norm$ns0
 
   #' Indices of potential responders
-  flag_ind = (ps1_hat>pu1_hat) & ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))
+  flag_ind = ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))#(ps1_hat>pu1_hat) & ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))
+  flag_1 = ps0_hat>pu0_hat
+  flag_2 = ps1_hat>pu1_hat
+  flag_3 = pu0_hat>pu1_hat
+  flag_4 = ps1_hat>ps0_hat
   #'Initialize parameter estimates
   inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,random=random,K=K)
   thetahat = inits$thetahat
@@ -85,8 +102,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRU
         #' New parameter estimates from optim
         #' Relative change in log-likelihood
         #' Update current log-likelihood and print it.
-        if(maxiter>10)
-          message("-Log-Likelihood: ", -llold)
+        #if(maxiter>10)
+         # message("-Log-Likelihood: ", -llold)
       }else{
         brk=TRUE
       }
@@ -107,7 +124,10 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRU
     #' Should zero out the likelihood for !ind_flag to be responders
 
     mat = t(t(mat) + log(pi_est))
-    mat[!(flag_ind),c(1:4)]=-.Machine$integer.max
+    mat[!(flag_ind&flag_1),c(1)]=-.Machine$integer.max
+    mat[!(flag_ind&flag_2),c(2)]=-.Machine$integer.max
+    mat[!(flag_ind&flag_3),c(3)]=-.Machine$integer.max
+    mat[!(flag_ind&flag_4),c(4)]=-.Machine$integer.max
 
     #' Update the z's
     z = exp(mat - apply(mat, 1, function(x)
@@ -134,11 +154,10 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRU
     if(brk){
       break
     }
-    #thetahat[c(1,3)]=thetahat[c(1,3)][order(invlogit(thetahat[c(1,3)]),decreasing=TRUE)]
-    #thetahat[c(5,7)]=thetahat[c(5,7)][order(invlogit(thetahat[c(5,7)]),decreasing=TRUE)]
+
   }
-  if(maxiter>10)
-    cat("done\n")
+  #if(maxiter>10)
+   # cat("done\n")
   colnames(inds) = 1:K
   l = list(z, inds, pi_est, thetahat,ps1_hat,ps0_hat,pu1_hat,pu0_hat,Ntot,ns1,nu1,ns0,nu0,-llold)
   names(l) = c("z","inds","pi_est","thetahat","ps1_hat","ps0_hat","pu1_hat","pu0_hat","Ntot","ns1","nu1","ns0","nu0","ll")

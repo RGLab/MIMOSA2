@@ -99,7 +99,7 @@ We simulate from the model.
 
 ```{r sim}
 set.seed(101)
-s = simulate_MIMOSA2(effect=1e-4,phi=100000,bg_effect=1e-5,baseline_stim=2e-4,baseline_background = 1e-4)
+s = simulate_MIMOSA2(effect=0,phi=10000,bg_effect=5e-5,baseline_stim=1e-4,baseline_background = 5e-5)
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 
@@ -118,7 +118,7 @@ The data is input into the `MIMOSA2` modeling function.
 
 ```{r}
 load_all()
-fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10))
+fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10,random=FALSE))
 ```
 
 The output of MIMOSA2 is a list with components `names(fit)`. The "z" is matrix with the probability that each observation arises from each component. "inds" holds the hard assignment of each observation to each model component. The hard assignments are done hierarchically, so if the probability that an observation arises from the two responder components is greater than the probability it arises from the non-responder or non-specific response components, then it is assigned to the response component with the greatest probability.
@@ -126,7 +126,7 @@ The output of MIMOSA2 is a list with components `names(fit)`. The "z" is matrix 
 The confusion matrix from the model fit is shown below.
 
 ```{r confusion}
-table(fit=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","R5")[max.col(fit$inds)],truth = s$truth)
+table(fit=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR")[max.col(fit$inds)],truth = s$truth)
 ```
 
 We can plot the results.

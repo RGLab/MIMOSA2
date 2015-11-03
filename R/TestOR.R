@@ -55,10 +55,10 @@ ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
 #' ROC(or_test = or_result, fit=R, truth = s$truth=="R")
 ROC = function(or_test, fit, truth) {
   rcomps=c(1:4)
-  #responder =  (fit$ps1_hat>fit$pu1_hat) & ((fit$ps1_hat-fit$pu1_hat) > (fit$ps0_hat-fit$pu0_hat))&((fit$ps1_hat-fit$ps0_hat) > (fit$pu1_hat-fit$pu0_hat))
+  empirical_responder =  (fit$ps1_hat>fit$pu1_hat) & ((fit$ps1_hat-fit$pu1_hat) > (fit$ps0_hat-fit$pu0_hat))&((fit$ps1_hat-fit$ps0_hat) > (fit$pu1_hat-fit$pu0_hat))
   toplot = data.table(rbind(
-  roc(or_test, truth),#&responder),
-    roc(1 - rowSums(fit$z[, rcomps,drop=FALSE]), truth)#&responder)
+  roc(or_test, truth),#&empirical_responder),
+    roc(1 - rowSums(fit$z[, rcomps,drop=FALSE]), truth)#&empirical_responder)
   ),
   Method = gl(
     n = 2,
@@ -123,10 +123,10 @@ Boxplot = function(obj,truth){
     contrast = ps1_hat - pu1_hat - ps0_hat + pu0_hat,
     truth,
     inds = max.col(inds)
-  )) + geom_boxplot(outlier.colour = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7"),labels=c("R1","R2","R3","R4","NR1","NR2","NSR")))) + geom_jitter(
-                                                 aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7"),labels=c("R1","R2","R3","R4","NR1","NR2","NSR"))),position=position_jitterdodge(),
+  )) + geom_boxplot(outlier.colour = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR")))) + geom_jitter(
+                                                 aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"))),position=position_jitterdodge(),
                                                  show.legend = FALSE
-                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(3)),labels=c("R1","R2","R3","R4","NR1","NR2","NSR"),limits=c("R1","R2","R3","R4","NR1","NR2","NSR"))
+                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(3),"#FFFF00"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"),limits=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"))
 })
 }
 

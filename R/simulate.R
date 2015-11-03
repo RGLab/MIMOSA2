@@ -32,18 +32,18 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
   Ntot = matrix(round(runif(P * D, 50000, 100000)), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
-  MS0 = baseline_stim
+  MS0 = baseline_stim+baseline_background
 
   #' Mean of hyperprior (stimulated time 1) $\alpha/(\alphaa+\beta)$
-  MS1 = MS0 + effect
+  MS1 = MS0 + effect+baseline_background+bg_effect
 
   #' Non Stimulated
-  MU1 = baseline_background
-  MU0 = baseline_background + bg_effect
+  MU0 = baseline_background
+  MU1 = baseline_background + bg_effect
 
   #'Precision of hyperprior
   #'$\alpha+\beta = \phi$
-  PHI = phi
+  PHI = rnorm(4,mean=phi,0.1*phi)
 
   #' There are 8 model components.
   #' 1. all different
@@ -64,13 +64,13 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
   k=1
   ps0 = rep(0, n[k])
   ps1 = rep(0, n[k])
-  pu1 = rbeta(n[k], MU1 * PHI, (1 - MU1) * PHI)
-  pu0 = rbeta(n[k], MU0 * PHI, (1-MU0) * PHI)
+  pu1 = rbeta(n[k], MU1 * PHI[1], (1 - MU1) * PHI[1])
+  pu0 = rbeta(n[k], MU0 * PHI[2], (1-MU0) * PHI[2])
   while (any(ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0)) {
     bar = ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0
     foo = sum(bar)
-    ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
-    ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
+    ps0[bar] = rbeta(foo, MS0 * PHI[3], (1 - MS0) * PHI[4])
+    ps1[bar] = rbeta(foo, MS1 * PHI[4], (1 - MS1) * PHI[4])
   }
   if (effect == 0) {
     ps1 = ps0
@@ -82,16 +82,16 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
 
   #'Simulate from component 2
   k=2
-  pu1 = rbeta(n[k], MU1 * PHI, (1 - MU1) * PHI)
-  pu0 = rbeta(n[k], MU0 * PHI, (1 - MU0) * PHI)
+  pu1 = rbeta(n[k], MU1 * PHI[1], (1 - MU1) * PHI[1])
+  pu0 = rbeta(n[k], MU0 * PHI[2], (1 - MU0) * PHI[2])
   ps0 = pu0
-  ps1 = rbeta(n[k],MS1*PHI, (1-MS1)*PHI)
+  ps1 = rbeta(n[k],MS1*PHI[4], (1-MS1)*PHI[4])
 
   while(any(ps1-pu1 <= ps0 - pu0|ps1 <= pu1)){
     bar = ps1-pu1 <= ps0 - pu0|ps1 <= pu1
     foo = sum(bar)
-    ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
-    pu1[bar] = rbeta(foo, MU1 * PHI, (1 - MU1) * PHI)
+    ps1[bar] = rbeta(foo, MS1 * PHI[4], (1 - MS1) * PHI[4])
+    pu1[bar] = rbeta(foo, MU1 * PHI[1], (1 - MU1) * PHI[1])
   }
 
   PU1=c(PU1,pu1)
@@ -102,33 +102,33 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
 
   #' Simulate from component 3.
   k=3
-  ps0 = ps1 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
-  pu0 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
-  pu1 = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
+  ps0 = ps1 = rbeta(n[k],MS1*PHI[4],(1-MS1)*PHI[4])
+  pu0 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
+  pu1 = rbeta(n[k],MU1*PHI[1],(1-MU1)*PHI[1])
 
   while(any(ps1-pu1 <= ps0 - pu0|ps1<=pu1| pu0<=pu1)){
     bar = ps1-pu1 <= ps0 - pu0|ps1<=pu1| pu0<=pu1
     foo = sum(bar)
-    pu0[bar] = rbeta(foo, MU0 * PHI, (1 - MU0) * PHI)
-    pu1[bar] = rbeta(foo, MU1 * PHI, (1 - MU1) * PHI)
+    pu0[bar] = rbeta(foo, MU0 * PHI[2], (1 - MU0) * PHI[2])
+    pu1[bar] = rbeta(foo, MU1 * PHI[1], (1 - MU1) * PHI[1])
   }
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #' Simulate from component 3.
+  #' Simulate from component 4.
   k=4
-  pu0 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
-  ps1 = rbeta(n[k],MS1*PHI,(1-MS1)*PHI)
-  ps0 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
+  pu0 = pu1 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
+  ps1 = rbeta(n[k],MS1*PHI[4],(1-MS1)*PHI[4])
+  ps0 = rbeta(n[k],MS0*PHI[3],(1-MS0)*PHI[3])
 
   iter = 0
   while(any(ps1-pu1 <= ps0 - pu0|ps1<=pu1| ps1<=ps0)){
     bar = ps1-pu1 <= ps0 - pu0|ps1<=pu1| ps1<=ps0
     foo = sum(bar)
-    ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
-    ps1[bar] = rbeta(foo, MS1 * PHI, (1 - MS1) * PHI)
+    ps0[bar] = rbeta(foo, MS0 * PHI[3], (1 - MS0) * PHI[3])
+    ps1[bar] = rbeta(foo, MS1 * PHI[4], (1 - MS1) * PHI[4])
   }
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
@@ -137,8 +137,8 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
 
   #'simulate from component 5
   k=5
-  ps1 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
-  ps0 = pu0 = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
+  ps1 = pu1 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
+  ps0 = pu0 = rbeta(n[k],MU1*PHI[1],(1-MU1)*PHI[1])
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
   PS1=c(PS1,ps1)
@@ -146,15 +146,15 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
 
   #'component 6
   k=6
-  ps1 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
-  ps0  = rbeta(n[k],MU1*PHI,(1-MU1)*PHI)
-  pu0  = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps1 = pu1 = rbeta(n[k],MU1*PHI[2],(1-MU1)*PHI[2])
+  ps0  = rbeta(n[k],MS0*PHI[3],(1-MS0)*PHI[3])
+  pu0  = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   #s0 should be greater than u0
   while(any(ps0<pu0)){
     bar = ps0<pu0
     foo = sum(bar)
-    ps0[bar] = rbeta(foo, MS0 * PHI, (1 - MS0) * PHI)
-    pu0[bar] = rbeta(foo, MU0 * PHI, (1 - MU0) * PHI)
+    ps0[bar] = rbeta(foo, MS0 * PHI[3], (1 - MS0) * PHI[3])
+    pu0[bar] = rbeta(foo, MU0 * PHI[2], (1 - MU0) * PHI[2])
   }
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
@@ -163,7 +163,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
 
   #'component 7
   k=7
-  ps1=ps0=pu1=pu0 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps1=ps0=pu1=pu0 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
   PS1=c(PS1,ps1)
@@ -172,8 +172,8 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
   #'component 8
   k=8
   if(n[k]>0){
-  ps0 = ps1 = rbeta(n[k],MS0*PHI,(1-MS0)*PHI)
-  pu0 = pu1 = rbeta(n[k],MU0*PHI,(1-MU0)*PHI)
+  ps0 = ps1 = rbeta(n[k],MS0*PHI[3],(1-MS0)*PHI[3])
+  pu0 = pu1 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   PU1=c(PU1,pu1)
   PU0=c(PU0,pu0)
   PS1=c(PS1,ps1)
