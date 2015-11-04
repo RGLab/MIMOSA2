@@ -13,7 +13,7 @@
 #' @seealso \link{MIMOSA2}
 #' @examples
 #' s = simulate_MIMOSA2()
-simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,baseline_background=1e-4,
+simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.5e-4,baseline_background=1e-4,
                     phi = 5000,
                     P = 100) {
 
@@ -22,8 +22,8 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
   n=rep(0,K)
   while(sum(n)!=P|any(P==0)){
   #'proportion of vaccine specific responses
-  pis = prop.table(prop.table(runif(K)))
-  pis = sort(pis, decreasing = TRUE)
+  pis = (prop.table(runif(K)))
+  #pis = sort(pis, decreasing = TRUE)
   R = NULL
   D = 4
 
@@ -32,18 +32,20 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim=2.5e-4,ba
   Ntot = matrix(round(runif(P * D, 50000, 100000)), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
-  MS0 = baseline_stim+baseline_background
+  MU0 = baseline_background
 
-  #' Mean of hyperprior (stimulated time 1) $\alpha/(\alphaa+\beta)$
-  MS1 = MS0 + effect+baseline_background+bg_effect
+  MS0 = baseline_stim_effect+MU0
 
   #' Non Stimulated
-  MU0 = baseline_background
-  MU1 = baseline_background + bg_effect
+  MU1 = MU0 + bg_effect
+
+  #' Mean of hyperprior (stimulated time 1) $\alpha/(\alphaa+\beta)$
+  MS1 = MU1 + effect
+
 
   #'Precision of hyperprior
   #'$\alpha+\beta = \phi$
-  PHI = rnorm(4,mean=phi,0.1*phi)
+  PHI = rep(phi,4)
 
   #' There are 8 model components.
   #' 1. all different

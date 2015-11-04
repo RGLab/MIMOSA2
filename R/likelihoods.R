@@ -36,22 +36,18 @@ ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
 
 #' 2. s0=u0
 ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-  as1  = invlogit(par[c(1)])*exp(par[c(2)])
-  bs1 = (1-invlogit(par[c(1)]))*exp(par[c(2)])
 
 #s1 > u1
   bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) +
     bbll(par[c(5,6)], Ntot[, "nu1"],  nu1)+
-  bbll(par[c(7,8)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)-
-    pbeta(nu1/Ntot[,"nu1"],as1,bs1,log=TRUE,lower.tail=FALSE)
-
+  bbll(par[c(7,8)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)
 }
 
 #' 3. s1=s0
 ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
     bbll(par[c(1,2)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1+ns0)+
-    bbll(par[c(5,6)], Ntot[, "ns0"],nu1)+
-    bbll(par[c(7,8)],Ntot[, "nu1"], nu0)
+    bbll(par[c(5,6)], Ntot[, "nu1"],nu1)+
+    bbll(par[c(7,8)],Ntot[, "nu0"], nu0)
 }
 
 #' 4. u1=u0
@@ -61,7 +57,7 @@ ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
     bbll(par[c(3,4)],(Ntot[,c("ns0")]),ns0)
   }
 
-#' 5.
+#' 5.s1=u1, s0=u0
 ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(5,6)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("ns0","nu0")]), ns0 + nu0)
@@ -72,7 +68,7 @@ ll6 = function(par, Ntot, ns1, nu1, ns0, nu0) {
     bbll(par[c(7,8)], (Ntot[,c("nu0")]), nu0) +
     bbll(par[c(3,4)], (Ntot[,c("ns0")]), ns0)
 }
-
+#' 7. s1=u1=s0=u0
 ll7 = function(par, Ntot, ns1, nu1, ns0, nu0) {
     bbll(par[c(7,8)], rowSums(Ntot[,c("nu1","ns1")])+rowSums(Ntot[,c("nu0","ns0")]), ns1+nu1+nu0+ns0)
 }

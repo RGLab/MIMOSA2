@@ -45,7 +45,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,inds=NULL,maxit=100,random=TRU
   # ns0 = norm$ns0
 
   #' Indices of potential responders
-  flag_ind = ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))#(ps1_hat>pu1_hat) & ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))
+  flag_ind = (ps1_hat>pu1_hat) & ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))
   flag_1 = ps0_hat>pu0_hat
   flag_2 = ps1_hat>pu1_hat
   flag_3 = pu0_hat>pu1_hat
