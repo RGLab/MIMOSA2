@@ -1,13 +1,11 @@
 #' Simulate data for MIMOSA2 model, ICS with baseline.
 #'
-#' @param effect \code{numeric} effect size for ps1 - pu1 - ps0 + pu0
-#' @param bg_effect \code{numeric} effect size for background pu0-pu1
-#' @param baseline_stim \code{numeric} baseline stimulation effect
-#' @param baseline_background \code{numeric} baseline background effect
-#' @param phi \code{numeric} integer, the precision.
-#' @param P \code{numeric} number of subjects.
-#' @param seed \code{numeric} random seed
-#'
+#' @param effect \code{numeric} effect size for ps1 - pu1 - ps0 + pu0. Default 5e-4
+#' @param bg_effect \code{numeric} effect size for background pu0-pu1. Default 0
+#' @param baseline_stim_effect \code{numeric} baseline stimulation effect. Default 2.5e-4
+#' @param baseline_background \code{numeric} baseline background effect. Default 1e-4
+#' @param phi \code{numeric} integer, the precision. Default 5000
+#' @param P \code{numeric} number of subjects.'
 #' @return \code{list} with components "Ntot" "ns0" "nu0" "ns1" "nu1" "truth"
 #' @export
 #' @seealso \link{MIMOSA2}
@@ -29,7 +27,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
 
   #' Total observations simulated
   #' from uniform with between 50,000 and 100,000 cells
-  Ntot = matrix(round(runif(P * D, 50000, 100000)), ncol = D, nrow = P)
+  Ntot = matrix(round(runif(P * D, 100000, 150000)), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
   MU0 = baseline_background

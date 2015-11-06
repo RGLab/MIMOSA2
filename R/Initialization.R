@@ -26,7 +26,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,random=FALSE,K) {
       inds[o[i],sample(1:4,1)]=1
     }
     for(i in (round(0.2*length(ortest))+1):length(ortest)){
-      inds[o[i],sample(c(5:8,4))]=1
+      inds[o[i],sample(5:8,1)]=1
     }
   }
 
@@ -45,6 +45,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,random=FALSE,K) {
     nu0 = nu0,
     control = list(fnscale = -1, maxit = 100000)
   )
+  thetahat = est$par
 
   #'Estimate pi, mixing proportions
   return(list(thetahat=thetahat,pi_est=pi_est,inds=inds))

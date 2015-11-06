@@ -25,73 +25,88 @@ const = function(n,k){
   lgamma(n+1)-lgamma(k+1)-lgamma(n-k+1)
 }
 
-#' 1. all different
-ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll1 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  as1 = invlogit(par[1])* exp(par[2])
+  bs1 = (1-invlogit(par[1]))* exp(par[2])
 #s1 > u1 and s0>u0
   bbll(par[c(1:2)], Ntot[, "ns1"], ns1) +
     bbll(par[c(3,4)],  Ntot[, "ns0"], ns0)+
     bbll(par[c(5,6)],  Ntot[, "nu1"], nu1)+
-    bbll(par[c(7,8)],   Ntot[,"nu0"],nu0)
+    bbll(par[c(7,8)],   Ntot[,"nu0"],nu0)+
+  sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
+    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
   }
 
-#' 2. s0=u0
-ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-
+.ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #s1 > u1
+  as1 = invlogit(par[1])* exp(par[2])
+  bs1 = (1-invlogit(par[1]))* exp(par[2])
+
   bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) +
     bbll(par[c(5,6)], Ntot[, "nu1"],  nu1)+
-  bbll(par[c(7,8)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)
+  bbll(par[c(7,8)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)+
+    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
+    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
+
 }
 
-#' 3. s1=s0
-ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll3 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  as1 = invlogit(par[1])* exp(par[2])
+  bs1 = (1-invlogit(par[1]))* exp(par[2])
+
     bbll(par[c(1,2)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1+ns0)+
     bbll(par[c(5,6)], Ntot[, "nu1"],nu1)+
-    bbll(par[c(7,8)],Ntot[, "nu0"], nu0)
+    bbll(par[c(7,8)],Ntot[, "nu0"], nu0)+
+    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
+    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
+
 }
 
-#' 4. u1=u0
-ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll4 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  as1 = invlogit(par[1])* exp(par[2])
+  bs1 = (1-invlogit(par[1]))* exp(par[2])
+
   bbll(par[c(1,2)],(Ntot[,c("ns1")]),ns1)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("nu0","nu1")]), nu0 + nu1) +
-    bbll(par[c(3,4)],(Ntot[,c("ns0")]),ns0)
+    bbll(par[c(3,4)],(Ntot[,c("ns0")]),ns0)+
+    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
+    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
   }
 
-#' 5.s1=u1, s0=u0
-ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(5,6)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("ns0","nu0")]), ns0 + nu0)
+
 }
-#' 6. s1=u1
-ll6 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll6 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(5,6)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
     bbll(par[c(7,8)], (Ntot[,c("nu0")]), nu0) +
     bbll(par[c(3,4)], (Ntot[,c("ns0")]), ns0)
+
 }
-#' 7. s1=u1=s0=u0
-ll7 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll7 = function(par, Ntot, ns1, nu1, ns0, nu0) {
     bbll(par[c(7,8)], rowSums(Ntot[,c("nu1","ns1")])+rowSums(Ntot[,c("nu0","ns0")]), ns1+nu1+nu0+ns0)
+
 }
 
-#' 8.s1=s0 u1=u0
-ll8 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+.ll8 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(3,4)],rowSums(Ntot[,c("ns1","ns0")]),ns1+ns0)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)
 }
 
-llm1 = function(par,Ntot,ns,nu){
+.llm1 = function(par,Ntot,ns,nu){
   const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
     bbll(par[c(1,2)],Ntot[,"nu"],nu)+
     bbll(par[c(3,4)],Ntot[,"ns"],ns)
 }
-llm0 = function(par,Ntot,ns,nu){
+.llm0 = function(par,Ntot,ns,nu){
   const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
     bbll(par[c(1,2)],Ntot[,"ns"]+Ntot[,"nu"],ns+nu)
 }
-cllm0m1 = function(par,Ntot,ns,nu){
+.cllm0m1 = function(par,Ntot,ns,nu){
   cbind(llm0(par,Ntot,ns,nu),llm1(par,Ntot,ns,nu))
 }
-sumcllm0m1 = function(..., inds, pi_est) {
+.sumcllm0m1 = function(..., inds, pi_est) {
   sum(inds * t(log(pi_est) + t(cll(...))))
 }
 
@@ -106,14 +121,14 @@ sumcllm0m1 = function(..., inds, pi_est) {
 #' @seealso \link{bbll} \link{MIMOSA2}
 cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
   cbind(
-    ll1(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll2(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll3(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll4(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll5(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll6(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll7(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-    ll8(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0)
+    .ll1(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll2(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll3(par, Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll4(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll5(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll6(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll7(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+    .ll8(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0)
 
   )
 }

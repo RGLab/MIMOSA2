@@ -99,7 +99,7 @@ We simulate from the model.
 
 ```{r sim}
 set.seed(100)
-s = simulate_MIMOSA2(effect=5e-4,P=200,phi=1000)
+s = simulate_MIMOSA2(effect=1e-4,baseline_stim_effect=5e-4,phi=10000)
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 
@@ -118,7 +118,10 @@ The data is input into the `MIMOSA2` modeling function.
 
 ```{r}
 load_all()
-fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10,random=TRUE))
+fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10,random=FALSE))
+ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
+toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
+ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
 The output of MIMOSA2 is a list with components `names(fit)`. The "z" is matrix with the probability that each observation arises from each component. "inds" holds the hard assignment of each observation to each model component. The hard assignments are done hierarchically, so if the probability that an observation arises from the two responder components is greater than the probability it arises from the non-responder or non-specific response components, then it is assigned to the response component with the greatest probability.
@@ -129,10 +132,13 @@ The confusion matrix from the model fit is shown below.
 table(fit=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR")[max.col(fit$inds)],truth = s$truth)
 ```
 
-We can plot the results.
+We plot the results.
 
 ```{r,fig.width=6,fig.height=4.5}
 Boxplot(obj=fit,truth=s$truth)
+p =with(s,{p = do.call(cbind,mget(colnames(Ntot)))/Ntot;colnames(p)=c("pu1","ps1","pu0","ps0");data.frame(p,truth)})
+ggplot(melt(p,value.var=c("pu1","ps1","pu0","ps0")))+geom_boxplot(aes(x=truth,y=value))+facet_wrap(~variable)
+ggplot(p)+geom_boxplot(aes(x=truth,y=ps1-pu1-ps0+pu0))
 ```
 
 We have `sum(table(fit=colnames(fit$inds)[max.col(fit$inds)],truth = s$truth)["R",1:4])` false positives, and `sum(table(fit=colnames(fit$inds)[max.col(fit$inds)],truth = s$truth)[,1:4][-3,])` false negatives. 
