@@ -140,7 +140,8 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #' @param pi_est \code{numeric} the mixing proportions.
 #' @seealso \link{bbll} \link{MIMOSA2}
 sumcll = function(..., inds, pi_est) {
-  sum(inds * t(log(pi_est) + t(cll(...))))
+  params = as.list(...)
+  sum(inds * t(log(pi_est) + t(cll(...))))+dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)
 }
 
 
