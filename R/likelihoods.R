@@ -33,8 +33,7 @@ const = function(n,k){
     bbll(par[c(3,4)],  Ntot[, "ns0"], ns0)+
     bbll(par[c(5,6)],  Ntot[, "nu1"], nu1)+
     bbll(par[c(7,8)],   Ntot[,"nu0"],nu0)+
-  sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
-    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE) #the last two terms implement the constraints on the p's
+  sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,1,log=TRUE),function(x)ifelse(is.finite(x),0,-.Machine$integer.max))
   }
 
 .ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
@@ -45,8 +44,7 @@ const = function(n,k){
   bbll(par[c(1, 2)], Ntot[, "ns1"] , ns1) +
     bbll(par[c(5,6)], Ntot[, "nu1"],  nu1)+
   bbll(par[c(7,8)],Ntot[,"nu0"]+Ntot[,"ns0"],ns0+nu0)+
-    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
-    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
+    sapply((ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"])>0,function(x)ifelse(x>0,0,-.Machine$integer.max))
 
 }
 
@@ -57,8 +55,7 @@ const = function(n,k){
     bbll(par[c(1,2)], Ntot[, "ns1"] + Ntot[, "ns0"], ns1+ns0)+
     bbll(par[c(5,6)], Ntot[, "nu1"],nu1)+
     bbll(par[c(7,8)],Ntot[, "nu0"], nu0)+
-    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
-    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
+    sapply((ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"])>0,function(x)ifelse(x>0,0,-.Machine$integer.max))
 
 }
 
@@ -69,9 +66,8 @@ const = function(n,k){
   bbll(par[c(1,2)],(Ntot[,c("ns1")]),ns1)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("nu0","nu1")]), nu0 + nu1) +
     bbll(par[c(3,4)],(Ntot[,c("ns0")]),ns0)+
-    sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
-    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
-  }
+    sapply((ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"])>0,function(x)ifelse(x>0,0,-.Machine$integer.max))
+}
 
 .ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(5,6)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
