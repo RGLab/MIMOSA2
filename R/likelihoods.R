@@ -34,7 +34,7 @@ const = function(n,k){
     bbll(par[c(5,6)],  Ntot[, "nu1"], nu1)+
     bbll(par[c(7,8)],   Ntot[,"nu0"],nu0)+
   sapply(dbeta(ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"],1,0.9,log=TRUE),function(x)ifelse(is.finite(x),x,-.Machine$integer.max))-
-    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE)
+    pbeta(nu1/Ntot[,"nu1"],ns1+as1,Ntot[,"ns1"]-ns1+bs1,log=TRUE,lower.tail=FALSE) #the last two terms implement the constraints on the p's
   }
 
 .ll2 = function(par, Ntot, ns1, nu1, ns0, nu0) {
