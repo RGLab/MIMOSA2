@@ -116,10 +116,12 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100,random=FALSE){
     # mat[!(flag_ind&flag_4),c(4)]=-.Machine$integer.max
 
     #' Update the z's
-    z = exp(mat - apply(mat, 1, function(x)
-      matrixStats::logSumExp(x)))
+    #browser()
+    mx = apply(mat,1,max)
+    z = (exp(mat-mx)/rowSums(exp(mat-mx)))
+    #z = exp(mat - apply(mat, 1, function(x)
+     # matrixStats::logSumExp(x)))
 
-    #' Components 2:K are non-responders, component 1 and 5 are  responders.
     #' Assign hierarchically to either the
     #' responder or non-responder components
     inds_resp = max.col(cbind(rowSums(z[, rcomps,drop=FALSE]), 1-rowSums(z[, rcomps,drop=FALSE])))
