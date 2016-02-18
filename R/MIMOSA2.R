@@ -8,7 +8,6 @@
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @param tol \code{numeric} tolerance for stopping criteria, change in relative log-likelihood.
 #' @param maxit \code{numeric} maximum number of iterations
-#' @param random \code{logical} random initialization or from Odds Ratio test. Default FALSE, initialize from data.
 #' @usage MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
 #' @return \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
 #' @export
@@ -19,7 +18,7 @@
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
-MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100,random=FALSE){
+MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
   K=8
   rcomps = c(1:4)
   #' Get the number of observations from the data.
@@ -37,7 +36,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100,random=FALSE){
   # flag_3 = TRUE#pu0_hat>pu1_hat
   # flag_4 = TRUE#ps1_hat>ps0_hat
   #'Initialize parameter estimates
-  inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K,random=random)
+  inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K)
   thetahat = inits$thetahat
   pi_est = inits$pi_est
   z=inits$inds
@@ -50,7 +49,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100,random=FALSE){
             nu0=nu0)
 
   #'Current complete data log-likelihood
-  llold = sum(t(t(mat) + log(pi_est)) * z)
+  llold = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0))) * z)
 
   #' Difference
   ldiff = Inf
@@ -106,10 +105,10 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100,random=FALSE){
               ns0=ns0,
               nu0=nu0)
 
-    #' Don't forget the mixing proportions.
+    #' add log mixing proportions.
     #' Should zero out the likelihood for !ind_flag to be responders
 
-    mat = t(t(mat) + log(pi_est))
+    mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
     # mat[!(flag_ind&flag_1),c(1)]=-.Machine$integer.max
     # mat[!(flag_ind&flag_2),c(2)]=-.Machine$integer.max
     # mat[!(flag_ind&flag_3),c(3)]=-.Machine$integer.max

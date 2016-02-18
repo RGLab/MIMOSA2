@@ -93,13 +93,14 @@ remaining model parameters are estimated using numerical optimization with R's *
 library(MIMOSA2)
 library(data.table)
 library(ggplot2)
+load_all(".")
 ```
 
 We simulate from the model.
 
 ```{r sim}
 set.seed(100)
-s = simulate_MIMOSA2(effect=5e-4,baseline_stim_effect=2.5e-4,phi=10000)
+s = simulate_MIMOSA2(effect=5e-4, baseline_stim_effect=2.5e-4,phi=1000,P=100)
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 
@@ -118,7 +119,7 @@ The data is input into the `MIMOSA2` modeling function.
 
 ```{r}
 load_all()
-fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10,random=FALSE))
+fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-10))
 ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
 toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
@@ -161,7 +162,7 @@ The ROC curves show that MIMOSA2 performs better than a one-sided test for a dif
 ```{r}
 fdr = MIMOSA::fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))
 o = order(fdr,decreasing=FALSE)
-plot(fdr[o],cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="true fdr",xlab="nominal fdr",xlim=c(0,0.25),ylim=c(0,0.25))
+plot(fdr[o],cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:length(s$truth),type="l",ylab="true fdr",xlab="nominal fdr",xlim=c(0,0.25),ylim=c(0,0.25))
 abline(0,1,lty=2)
 o = order(ortest,decreasing=FALSE)
 lines(ortest[o],cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="true fdr",xlab="nominal fdr",col="red")

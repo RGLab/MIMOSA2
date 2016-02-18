@@ -7,45 +7,57 @@
 #' @param ns0
 #' @param nu0
 #' @return \code{list} of initialized parameter estimates with components \code{inds} \code{theta_hat} \code{pi_est}.
-initialize = function(P,Ntot,ns1,nu1,ns0,nu0,random=FALSE,K) {
+initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
   reps=ifelse(ncol(Ntot)>2,4,2)
   K = ifelse(ncol(Ntot)>2,K,2)
-  thetahat = rep(c(logit(0.5), log(100)), reps)
-    #'Initialize random hard assignments
-  if(random){
-    inds = t(sapply(sample(1:K, P, replace = TRUE), function(x) {
-     y = rep(0, K)
-      y[x] = 1
-      y
-    }))
-  }else{
-    ortest = ORTest(Ntot,ns1,nu1,ns0,nu0)
-    o=order(ortest,decreasing=FALSE)
+  thetahat = rep(c(logit(0.5), log(10000)), reps)
+  #empirical estimates:
+  deltap  = (ns1/Ntot[,"ns1"]-nu1/Ntot[,"nu1"]-ns0/Ntot[,"ns0"]+nu0/Ntot[,"nu0"])>0
+  r1 = ns1/Ntot[,"ns1"]>nu1/Ntot[,"nu1"]
+  r0 = ns0/Ntot[,"ns0"]>nu0/Ntot[,"nu0"]
+  indicator = deltap>0&(r1&!r0)
     inds = matrix(0,ncol=K,nrow=nrow(Ntot))
-    for(i in seq_along(1:round(0.2*length(ortest)))){
-      inds[o[i],sample(1:4,1)]=1
+    if(sum(indicator)>0){
+    		for(i in which(indicator)){
+    			inds[i,1]=1
+    		}
     }
-    for(i in (round(0.2*length(ortest))+1):length(ortest)){
-      inds[o[i],sample(5:8,1)]=1
+    for(i in which(!indicator)){
+    	inds[i,5]=1
     }
-  }
+   inds2 = rowSums(inds[,1:4] )>0
+   thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[inds2]))
+   thetahat[5] = logit(mean((nu1/Ntot[,"nu1"])[inds2]))
+   thetahat[3] = logit(mean((ns0/Ntot[,"ns0"])[inds2]))
+   thetahat[7] = logit(mean((nu0/Ntot[,"nu0"])[inds2]))
+   thetahat[2] = 2
+   thetahat[6] = 2
 
   pi_est = colMeans(inds)
 
   #initialize thetahat from inds and data.
-  est = optim(
-    par = thetahat,
-    fn = sumcll,
-    pi_est = pi_est,
-    inds = inds,
-    Ntot = Ntot,
-    ns1 = ns1,
-    nu1 = nu1,
-    ns0 = ns0,
-    nu0 = nu0,
-    control = list(fnscale = -1, maxit = 100000)
-  )
-  thetahat = est$par
+  # make several initialization runs and take the best sometimes it fails miserably.
+  bestest=NULL
+  for(k in 1:10){
+    est = optim(
+      par = thetahat,
+      fn = sumcll,
+      pi_est = pi_est,
+      inds = inds,
+      Ntot = Ntot,
+      ns1 = ns1,
+      nu1 = nu1,
+      ns0 = ns0,
+      nu0 = nu0,
+      control = list(fnscale = -1, maxit = 100000)
+    )
+    if(k==1&est$convergence==0)
+      bestest=est
+    if(est$value>bestest$value)
+      bestest=est
+  }
+
+  thetahat = bestest$par
 
   #'Estimate pi, mixing proportions
   return(list(thetahat=thetahat,pi_est=pi_est,inds=inds))

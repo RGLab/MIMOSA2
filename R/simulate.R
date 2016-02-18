@@ -26,7 +26,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   D = 4
 
   #' Total observations simulated
-  #' from uniform with between 50,000 and 100,000 cells
+  #' from uniform with between 100,000 and 150,000 cells
   Ntot = matrix(round(runif(P * D, 100000, 150000)), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
@@ -34,10 +34,10 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
 
   MS0 = baseline_stim_effect+MU0
 
-  #' Non Stimulated
+  #' Non Stimulated post vaccine
   MU1 = MU0 + bg_effect
 
-  #' Mean of hyperprior (stimulated time 1) $\alpha/(\alphaa+\beta)$
+  #' Mean of hyperprior (stimulated time 1) $\alpha/(\alpha+\beta)$
   MS1 = MU1 + effect
 
 
