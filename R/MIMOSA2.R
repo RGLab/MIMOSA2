@@ -12,13 +12,14 @@
 #' @return \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
 #' @export
 #' @importFrom matrixStats logSumExp
-#' @import data.table ggplot2
+#' @import data.table ggplot2 optimx
 #' @seealso \link{ORTest} \link{ROC} \link{ROCPlot} \link{Boxplot} \link{simulate_MIMOSA2} \link{logit} \link{invlogit}
 #' @examples
-#' s = simulate_MIMOSA2()
+#' s = simulate_MIMOSA2();
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
 MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
+  require(optimx)
   K=8
   rcomps = c(1:4)
   #' Get the number of observations from the data.
@@ -40,6 +41,9 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
   thetahat = inits$thetahat
   pi_est = inits$pi_est
   z=inits$inds
+
+
+
   #' Per observation complete data log likelihood matrix
   mat = cll(par=thetahat,
             Ntot=Ntot,
@@ -47,9 +51,11 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
             nu1=nu1,
             ns0=ns0,
             nu0=nu0)
-
+  mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
+  mx = apply(mat,1,max)
+  z = (exp(mat-mx)/rowSums(exp(mat-mx)))
   #'Current complete data log-likelihood
-  llold = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0))) * z)
+  llold = sum(mat)
 
   #' Difference
   ldiff = Inf
@@ -67,7 +73,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
       break;
     }
     #' optimize fnscale -1 for maximization.
-    est = try(optim(
+    est = try(optimx(
       par = thetahat,
       fn = sumcll,
       pi_est = pi_est,
@@ -77,11 +83,20 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
       nu1 = nu1,
       ns0 = ns0,
       nu0 = nu0,
-      control = list(fnscale = -1, maxit = 100000)
-    ),silent = TRUE)
+      method="newuoa"),silent = TRUE)
     if(!inherits(est,"try-error")){
-      if(est$value>llold){
-        thetahat = est$par
+      #' Per observation complete data log likelihood matrix
+      mat = cll(par=unlist(est[1:8]),
+                Ntot=Ntot,
+                ns1=ns1,
+                nu1=nu1,
+                ns0=ns0,
+                nu0=nu0)
+
+      #'Current complete data log-likelihood
+      llnew = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0))))
+      if(llnew>llold){
+        thetahat = unlist(est[1:8])
         ldiff = abs(est$value-llold)/abs(est$value)
         llold = est$value
         #' New parameter estimates from optim
