@@ -58,7 +58,7 @@ const = function(n,k){
 
 .ll5 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(5,6)],rowSums(Ntot[,c("ns1","nu1")]),ns1+nu1)+
-    bbll(par[c(7,8)], rowSums(Ntot[,c("ns0","nu0")]), ns0 + nu0)
+    bbll(par[c(7,6)], rowSums(Ntot[,c("ns0","nu0")]), ns0 + nu0)
 
 }
 .ll6 = function(par, Ntot, ns1, nu1, ns0, nu0) {
@@ -93,8 +93,8 @@ const = function(n,k){
   sum(inds * t(log(pi_est) + t(cll(...))))
 }
 
-#' Complete data log-likelihood
-#' @details Calcualtes the complete data log-likelihood for each observation
+#' log-likelihood of each component
+#' @details Calcualtes the  log-likelihood for each observation at each model component
 #' @param par vector of parameters.
 #' @param Ntot \code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"
 #' @param ns1 \code{numeric} integer vector of successes in condition 1 treatment s.
@@ -116,7 +116,7 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
   )
 }
 
-#'Sum of the complete data log-likelihood across all observations.
+#'Calculate the complete data log-likelihood across all observations.
 #'
 #' @param ... all model parameters and data (par, Ntot, ns0,ns1,nu0,nu1)
 #' @param inds \code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.
@@ -124,7 +124,7 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #' @seealso \link{bbll} \link{MIMOSA2}
 sumcll = function(..., inds, pi_est) {
   params = as.list(...)
-  -(sum(inds * t(sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)) + t(cll(...))))+dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+sum(dbeta(invlogit(c(params[[1]],params[[3]],params[[5]],params[[7]])),0.5,0.5,log=TRUE)))#+dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)
+  -(sum(inds * t(sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)) + t(cll(...)))))#+dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+sum(dbeta(invlogit(c(params[[1]],params[[3]],params[[5]],params[[7]])),0.5,0.5,log=TRUE)))#+dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)
 }
 
 

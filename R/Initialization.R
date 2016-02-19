@@ -19,11 +19,11 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
     inds = matrix(0,ncol=K,nrow=nrow(Ntot))
     if(sum(indicator)>0){
     		for(i in which(indicator)){
-    			inds[i,1]=1
+    			inds[i,sample(1:4,1)]=1
     		}
     }
     for(i in which(!indicator)){
-    	inds[i,5]=1
+    	inds[i,sample(5:8,1)]=1
     }
    inds2 = rowSums(inds[,1:4] )>0
    thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[inds2]))
@@ -58,7 +58,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
       est = optimx(
         par = thetahat,
         fn = sumcll,
-        method="newuoa",
+        method="bobyqa",
         pi_est = pi_est,
         inds = inds,
         Ntot = Ntot,

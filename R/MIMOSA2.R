@@ -52,10 +52,18 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
             ns0=ns0,
             nu0=nu0)
   mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
+  # .calcPriors=function(thetahat){
+  #   priors = c(dbeta(invlogit(thetahat[c(1,3,5,7)]),0.5,0.5,log=TRUE),dgamma(thetahat[c(2,6)],shape=11/4,rate=0.5,log=TRUE))
+  #   priors = priors[c(1,5,2,5,3,6,4,6)]
+  #   priors = c(sum(priors[c(1,3,5,7)]),sum(priors[c(1,5,7,2,6)]),sum(priors[c(1,5,7,2,6)]),sum(priors[c(1,3,7,2,6)]),sum(priors[c(5,7,6)]),sum(priors[c(5,7,3,2,6)]),sum(priors[c(7,6)]),sum(priors[c(7,3,2,6)]))
+  #   priors
+  # }
+  # priors = .calcPriors(thetahat)
+  # mat = t(t(mat)+priors)
   mx = apply(mat,1,max)
   z = (exp(mat-mx)/rowSums(exp(mat-mx)))
   #'Current complete data log-likelihood
-  llold = sum(mat)
+  llold = sum(mat*z)
 
   #' Difference
   ldiff = Inf
@@ -83,8 +91,9 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
       nu1 = nu1,
       ns0 = ns0,
       nu0 = nu0,
-      method="newuoa"),silent = TRUE)
+      method=c("newuoa","bobyqa")),silent = TRUE)
     if(!inherits(est,"try-error")){
+      est=est[order(est[,"convcode"],est[,"value"],decreasing=FALSE)[1],,drop=FALSE]
       #' Per observation complete data log likelihood matrix
       mat = cll(par=unlist(est[1:8]),
                 Ntot=Ntot,
@@ -94,11 +103,15 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
                 nu0=nu0)
 
       #'Current complete data log-likelihood
-      llnew = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0))))
+      mx = apply(mat,1,max)
+      znew = (exp(mat-mx)/rowSums(exp(mat-mx)))
+      llnew = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))*znew)
+      # cat(llnew-llold,"\n")
       if(llnew>llold){
         thetahat = unlist(est[1:8])
         ldiff = abs(est$value-llold)/abs(est$value)
-        llold = est$value
+        llold = llnew
+        z=znew
         #' New parameter estimates from optim
         #' Relative change in log-likelihood
         #' Update current log-likelihood and print it.
@@ -113,26 +126,27 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
 
     #' Calculate matrix of complete-data log likelihood for each observation.
     #' ns1, ks1, ns0, ks0, nu, ku, ns, ks, n1, k1,n0,k0,n,k
-    mat = cll(thetahat,
-              Ntot=Ntot,
-              ns1=ns1,
-              nu1=nu1,
-              ns0=ns0,
-              nu0=nu0)
+    # mat = cll(thetahat,
+    #           Ntot=Ntot,
+    #           ns1=ns1,
+    #           nu1=nu1,
+    #           ns0=ns0,
+    #           nu0=nu0)
 
     #' add log mixing proportions.
     #' Should zero out the likelihood for !ind_flag to be responders
 
-    mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
+    # mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
     # mat[!(flag_ind&flag_1),c(1)]=-.Machine$integer.max
     # mat[!(flag_ind&flag_2),c(2)]=-.Machine$integer.max
     # mat[!(flag_ind&flag_3),c(3)]=-.Machine$integer.max
     # mat[!(flag_ind&flag_4),c(4)]=-.Machine$integer.max
 
     #' Update the z's
-    #browser()
-    mx = apply(mat,1,max)
-    z = (exp(mat-mx)/rowSums(exp(mat-mx)))
+    # priors = .calcPriors(thetahat)
+    # mat = t(t(mat)+priors)
+    # mx = apply(mat,1,max)
+    # z = (exp(mat-mx)/rowSums(exp(mat-mx)))
     #z = exp(mat - apply(mat, 1, function(x)
      # matrixStats::logSumExp(x)))
 
