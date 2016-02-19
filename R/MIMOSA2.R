@@ -18,7 +18,7 @@
 #' s = simulate_MIMOSA2();
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
-MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
+MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
   require(optimx)
   K=8
   rcomps = c(1:4)
@@ -106,8 +106,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-10,maxit=100){
       mx = apply(mat,1,max)
       znew = (exp(mat-mx)/rowSums(exp(mat-mx)))
       llnew = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))*znew)
-      # cat(llnew-llold,"\n")
       if(llnew>llold){
+        # cat(llnew-llold,"\n")
         thetahat = unlist(est[1:8])
         ldiff = abs(est$value-llold)/abs(est$value)
         llold = llnew
