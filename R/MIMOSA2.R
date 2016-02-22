@@ -30,12 +30,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
   ps1_hat = prop.table(cbind(Ntot[, "ns1"], ns1), 1)[, 2]
   pu0_hat = prop.table(cbind(Ntot[, "nu0"], nu0), 1)[, 2]
   ps0_hat = prop.table(cbind(Ntot[, "ns0"], ns0), 1)[, 2]
-  #' Indices of potential responders# This is handled via a penalty on ps1 - pu1 - ps2 + pu2 for components 1 through 4.
-  # flag_ind = TRUE#(ps1_hat>pu1_hat) & ((ps1_hat-pu1_hat) > (ps0_hat-pu0_hat))
-  # flag_1 = TRUE#ps0_hat>pu0_hat
-  # flag_2 = TRUE#ps1_hat>pu1_hat
-  # flag_3 = TRUE#pu0_hat>pu1_hat
-  # flag_4 = TRUE#ps1_hat>ps0_hat
+
   #'Initialize parameter estimates
   inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K)
   thetahat = inits$thetahat
@@ -51,23 +46,13 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
             nu1=nu1,
             ns0=ns0,
             nu0=nu0)
-  mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
-  # .calcPriors=function(thetahat){
-  #   priors = c(dbeta(invlogit(thetahat[c(1,3,5,7)]),0.5,0.5,log=TRUE),dgamma(thetahat[c(2,6)],shape=11/4,rate=0.5,log=TRUE))
-  #   priors = priors[c(1,5,2,5,3,6,4,6)]
-  #   priors = c(sum(priors[c(1,3,5,7)]),sum(priors[c(1,5,7,2,6)]),sum(priors[c(1,5,7,2,6)]),sum(priors[c(1,3,7,2,6)]),sum(priors[c(5,7,6)]),sum(priors[c(5,7,3,2,6)]),sum(priors[c(7,6)]),sum(priors[c(7,3,2,6)]))
-  #   priors
-  # }
-  # priors = .calcPriors(thetahat)
-  # mat = t(t(mat)+priors)
   mx = apply(mat,1,max)
-  z = (exp(mat-mx)/rowSums(exp(mat-mx)))
+  tmp = t(t(exp(mat-mx))*pi_est)
+  z = (tmp/rowSums(tmp))
+  pi_est = colMeans(z)
   #'Current complete data log-likelihood
-  llold = sum(mat*z)
 
-  #' Difference
-  ldiff = Inf
-
+  ldiff=Inf
   #' Maximum itertions 100 (will be configurable).Current iteration 0
   maxiter=maxit
   iter=0
@@ -75,12 +60,11 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
   #'Fitting loop, alternate E and M steps,
   #' stop when relative change in ll is 1e-5
   brk=FALSE
-  while (ldiff > tol) {
+  while (all(ldiff > tol)) {
     iter=iter+1
     if(iter>maxiter){
       break;
     }
-    #' optimize fnscale -1 for maximization.
     est = try(optimx(
       par = thetahat,
       fn = sumcll,
@@ -94,61 +78,27 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
       method=c("newuoa","bobyqa")),silent = TRUE)
     if(!inherits(est,"try-error")){
       est=est[order(est[,"convcode"],est[,"value"],decreasing=FALSE)[1],,drop=FALSE]
-      #' Per observation complete data log likelihood matrix
-      mat = cll(par=unlist(est[1:8]),
+      mat_new = cll(par=unlist(est[1:8]),
                 Ntot=Ntot,
                 ns1=ns1,
                 nu1=nu1,
                 ns0=ns0,
                 nu0=nu0)
 
-      #'Current complete data log-likelihood
-      mx = apply(mat,1,max)
-      znew = (exp(mat-mx)/rowSums(exp(mat-mx)))
-      llnew = sum(t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))*znew)
-      if(llnew>llold){
-        # cat(llnew-llold,"\n")
-        thetahat = unlist(est[1:8])
-        ldiff = abs(est$value-llold)/abs(est$value)
-        llold = llnew
-        z=znew
-        #' New parameter estimates from optim
-        #' Relative change in log-likelihood
-        #' Update current log-likelihood and print it.
-        #if(maxiter>10)
-         # message("-Log-Likelihood: ", -llold)
-      }else{
-        brk=TRUE
-      }
+      mx = apply(mat_new,1,max)
+      tmp = t(t(exp(mat_new-mx))*pi_est)
+      z_new = (tmp/rowSums(tmp))
+      pi_new = colMeans(z_new)
+      cat(sum(abs(unlist(est[c(1,2,3,5,6,7)])-thetahat[c(1,2,3,5,6,7)])),"\n")
+      ldiff = abs(c(unlist(est[c(1,2,3,5,6,7)]),pi_new)-c(thetahat[c(1,2,3,5,6,7)],pi_est))
+      thetahat = unlist(est[1:8])
+      z=z_new
+      pi_est = colMeans(z)
     }else{
       brk=TRUE
     }
 
-    #' Calculate matrix of complete-data log likelihood for each observation.
-    #' ns1, ks1, ns0, ks0, nu, ku, ns, ks, n1, k1,n0,k0,n,k
-    # mat = cll(thetahat,
-    #           Ntot=Ntot,
-    #           ns1=ns1,
-    #           nu1=nu1,
-    #           ns0=ns0,
-    #           nu0=nu0)
 
-    #' add log mixing proportions.
-    #' Should zero out the likelihood for !ind_flag to be responders
-
-    # mat = t(t(mat) + sapply(log(pi_est),function(x)ifelse(is.finite(x),x,0)))
-    # mat[!(flag_ind&flag_1),c(1)]=-.Machine$integer.max
-    # mat[!(flag_ind&flag_2),c(2)]=-.Machine$integer.max
-    # mat[!(flag_ind&flag_3),c(3)]=-.Machine$integer.max
-    # mat[!(flag_ind&flag_4),c(4)]=-.Machine$integer.max
-
-    #' Update the z's
-    # priors = .calcPriors(thetahat)
-    # mat = t(t(mat)+priors)
-    # mx = apply(mat,1,max)
-    # z = (exp(mat-mx)/rowSums(exp(mat-mx)))
-    #z = exp(mat - apply(mat, 1, function(x)
-     # matrixStats::logSumExp(x)))
 
     #' Assign hierarchically to either the
     #' responder or non-responder components
@@ -166,7 +116,6 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
     }
 
     #' update mixing proportions
-    pi_est = colMeans(z)
     if(brk){
       break
     }
@@ -175,7 +124,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
   #if(maxiter>10)
    # cat("done\n")
   colnames(inds) = 1:K
-  l = list(z, inds, pi_est, thetahat,ps1_hat,ps0_hat,pu1_hat,pu0_hat,Ntot,ns1,nu1,ns0,nu0,-llold)
-  names(l) = c("z","inds","pi_est","thetahat","ps1_hat","ps0_hat","pu1_hat","pu0_hat","Ntot","ns1","nu1","ns0","nu0","ll")
+  l = list(z, inds, pi_est, thetahat,ps1_hat,ps0_hat,pu1_hat,pu0_hat,Ntot,ns1,nu1,ns0,nu0)
+  names(l) = c("z","inds","pi_est","thetahat","ps1_hat","ps0_hat","pu1_hat","pu0_hat","Ntot","ns1","nu1","ns0","nu0")
   return(l)
 }

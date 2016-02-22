@@ -19,11 +19,11 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
     inds = matrix(0,ncol=K,nrow=nrow(Ntot))
     if(sum(indicator)>0){
     		for(i in which(indicator)){
-    			inds[i,sample(1:4,1)]=1
+    			inds[i,]=0.25
     		}
     }
     for(i in which(!indicator)){
-    	inds[i,sample(5:8,1)]=1
+    	inds[i,]=0.25
     }
    inds2 = rowSums(inds[,1:4] )>0
    thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[inds2]))
@@ -31,6 +31,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
    thetahat[3] = logit(mean((ns0/Ntot[,"ns0"])[inds2]))
    thetahat[7] = logit(mean((nu0/Ntot[,"nu0"])))
    thetahat[2] = 2
+   thetahat[4] = 2
    thetahat[6] = 2
    thetahat[c(1,3,5,7)][is.infinite(thetahat[c(1,3,5,7)])]=log(1e-6)
 
@@ -41,7 +42,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
   bestest=NULL
   bestest$value=-Inf
   for(k in 1:5){
-    est = optim(
+    est = try(optim(
       par = thetahat,
       fn = sumcll,
       pi_est = pi_est,
@@ -51,7 +52,8 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
       nu1 = nu1,
       ns0 = ns0,
       nu0 = nu0
-    )
+    ))
+    if(inherits(est,"try-error")){browser()}
     if(k==1&est$convergence==0&est$value>bestest$value)
       bestest=est
     else if (est$convergence!=0){
