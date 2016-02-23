@@ -7,6 +7,7 @@
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @param tol \code{numeric} tolerance for stopping criteria, change in relative log-likelihood.
+#' @param verbose \code{logical} print the absolute difference of the sum of successive estimates of parameters. Defaults to FALSE
 #' @param maxit \code{numeric} maximum number of iterations
 #' @usage MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
 #' @return \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
@@ -18,7 +19,7 @@
 #' s = simulate_MIMOSA2();
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
-MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
+MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   require(optimx)
   K=8
   rcomps = c(1:4)
@@ -89,7 +90,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100){
       tmp = t(t(exp(mat_new-mx))*pi_est)
       z_new = (tmp/rowSums(tmp))
       pi_new = colMeans(z_new)
-      cat(sum(abs(unlist(est[c(1,2,3,5,6,7)])-thetahat[c(1,2,3,5,6,7)])),"\n")
+      if(verbose)
+        cat(sum(abs(unlist(est[c(1,2,3,5,6,7)])-thetahat[c(1,2,3,5,6,7)])),"\n")
       ldiff = abs(c(unlist(est[c(1,2,3,5,6,7)]),pi_new)-c(thetahat[c(1,2,3,5,6,7)],pi_est))
       thetahat = unlist(est[1:8])
       z=z_new

@@ -54,8 +54,9 @@ $\mathcal{M}_8 &: p_i^{(s,1)} = p_i^{(s,0)} \ne p_i^{(u,1)} = p_i^{(u,0)}$
 
 
 
-Under models 1-4, we have responses, with the following constraints:  
-$p_i^{(s,1)} - p_i^{(u,1)} > p_i^{(s,0)} - p_i^{(u,0)}$ and $p_i^{(s,1)} > p_i^{(u,1)}$.  
+Under models 1-4, we have responses, with the principal constraint:
+$p_i^{(s,1)} - p_i^{(u,1)} - p_i^{(s,0)} + p_i^{(u,0)}$ > 0
+
 For model 1, we have the additional constraint that:
 $p_i^{(s,0) > p_i^{(u,0)}$  
 For model 2, we have:  
@@ -100,7 +101,7 @@ We simulate from the model.
 
 ```{r sim}
 set.seed(100)
-s = simulate_MIMOSA2(effect=1.5e-4, baseline_stim_effect=1e-4,baseline_background = 4e-5,bg_effect = 0,phi=15000,P=100)
+s = simulate_MIMOSA2(effect=1.5e-4, baseline_stim_effect=1e-4,baseline_background = 5e-5,bg_effect = 5e-5,phi=150000,P=50,rng=c(100000,150000))
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 
@@ -117,12 +118,9 @@ knitr::kable(data.frame(tbl))
 The data is input into the `MIMOSA2` modeling function.
 
 
-```{r}
+```{r,fig.width=6,fig.height=6}
 load_all()
 fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-5))
-ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
-toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
-ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
 The output of MIMOSA2 is a list with components `names(fit)`. The "z" is matrix with the probability that each observation arises from each component. "inds" holds the hard assignment of each observation to each model component. The hard assignments are done hierarchically, so if the probability that an observation arises from the two responder components is greater than the probability it arises from the non-responder or non-specific response components, then it is assigned to the response component with the greatest probability.
@@ -135,7 +133,7 @@ table(fit=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR")[max.col(fit$inds)],trut
 
 We plot the results.
 
-```{r,fig.width=6,fig.height=4.5}
+```{r,fig.width=6,fig.height=6}
 Boxplot(obj=fit,truth=s$truth)
 p =with(s,{p = do.call(cbind,mget(colnames(Ntot)))/Ntot;colnames(p)=c("pu1","ps1","pu0","ps0");data.frame(p,truth)})
 ggplot(melt(p,value.var=c("pu1","ps1","pu0","ps0")))+geom_boxplot(outlier.col=NA)+facet_wrap(~variable)+geom_jitter()+aes(x=truth,y=value)
@@ -149,7 +147,7 @@ The large number of false negatives is not surprising, given the number of ways 
 
 We can generate ROCs comparing against a standard test of odds ratios.
 
-```{r,fig.width=6,fig.height=4.5}
+```{r,fig.width=6,fig.height=6}
 ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
 toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
@@ -159,14 +157,13 @@ The ROC curves show that MIMOSA2 performs better than a one-sided test for a dif
 
 ### Control of the false discovery rate.
 
-```{r}
+```{r,fig.width=6,fig.height=6}
 fdr = MIMOSA::fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))
 o = order(fdr,decreasing=FALSE)
-plot(fdr[o],cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:length(s$truth),type="l",ylab="true fdr",xlab="nominal fdr",xlim=c(0,0.25),ylim=c(0,0.25))
+plot(y=fdr[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:length(s$truth),type="l",ylab="observed fdr",xlab="nominal fdr",xlim=c(0,0.25),ylim=c(0,0.25),col="blue")
 abline(0,1,lty=2)
 o = order(ortest,decreasing=FALSE)
-lines(ortest[o],cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="true fdr",xlab="nominal fdr",col="red")
+lines(y=ortest[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="observed fdr",xlab="nominal fdr",col="red")
 abline(0,1,lty=2)
+legend("bottomrigh",c("MIMOSA2","ORTest"),col=c("blue","red"),lty=1)
 ```
-
-

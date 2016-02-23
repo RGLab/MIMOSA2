@@ -6,6 +6,7 @@
 #' @param baseline_background \code{numeric} baseline background effect. Default 1e-4
 #' @param phi \code{numeric} integer, the precision. Default 5000
 #' @param P \code{numeric} number of subjects.'
+#' @param rng \code{numeric} vector of length 2. The range of total cell counts to simulate from.
 #' @return \code{list} with components "Ntot" "ns0" "nu0" "ns1" "nu1" "truth"
 #' @export
 #' @seealso \link{MIMOSA2}
@@ -13,7 +14,7 @@
 #' s = simulate_MIMOSA2()
 simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.5e-4,baseline_background=1e-4,
                     phi = 5000,
-                    P = 100) {
+                    P = 100,rng = c(100000,150000)) {
 
   #' Run 100 simulations, dropping any errors (i.e. simulations that error out)
   K = 8
@@ -27,7 +28,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
 
   #' Total observations simulated
   #' from uniform with between 100,000 and 150,000 cells
-  Ntot = matrix(round(runif(P * D, 100000, 150000)), ncol = D, nrow = P)
+  Ntot = matrix(round(runif(P * D, rng[1], rng[2])), ncol = D, nrow = P)
 
   #' Hyperprior mean for stimulated time 0
   MU0 = baseline_background
