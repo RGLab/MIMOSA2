@@ -35,6 +35,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   #'Initialize parameter estimates
   inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K)
   thetahat = inits$thetahat
+  #thetahat[c(1,3,5,7)]=sort(thetahat[c(1,3,5,7)],decreasing=TRUE)
   pi_est = inits$pi_est
   z=inits$inds
 
@@ -47,8 +48,9 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
             nu1=nu1,
             ns0=ns0,
             nu0=nu0)
+  mat = t(t(mat)+log1p(pi_est))
   mx = apply(mat,1,max)
-  tmp = t(t(exp(mat-mx))*pi_est)
+  tmp = exp(mat-mx)
   z = (tmp/rowSums(tmp))
   pi_est = colMeans(z)
   #'Current complete data log-likelihood
@@ -79,21 +81,23 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       method=c("newuoa","bobyqa")),silent = TRUE)
     if(!inherits(est,"try-error")){
       est=est[order(est[,"convcode"],est[,"value"],decreasing=FALSE)[1],,drop=FALSE]
+      est = unlist(est[1:8])
+      #est[c(1,3,5,7)]=sort(est[c(1,3,5,7)],decreasing=TRUE)
       mat_new = cll(par=unlist(est[1:8]),
                 Ntot=Ntot,
                 ns1=ns1,
                 nu1=nu1,
                 ns0=ns0,
                 nu0=nu0)
-
+      mat=t(t(mat)+log1p(pi_est))
       mx = apply(mat_new,1,max)
-      tmp = t(t(exp(mat_new-mx))*pi_est)
+      tmp = exp(mat_new-mx)
       z_new = (tmp/rowSums(tmp))
       pi_new = colMeans(z_new)
       if(verbose)
-        cat(sum(abs(unlist(est[c(1,2,3,5,6,7)])-thetahat[c(1,2,3,5,6,7)])),"\n")
-      ldiff = abs(c(unlist(est[c(1,2,3,5,6,7)]),pi_new)-c(thetahat[c(1,2,3,5,6,7)],pi_est))
-      thetahat = unlist(est[1:8])
+        cat(sum(abs(unlist(est[c(1,2,3,4,5,6,7,8)])-thetahat[c(1,2,3,4,5,6,7,8)])),"\n")
+      ldiff = abs(c(unlist(est[c(1,2,3,4,5,6,7,8)]),pi_new)-c(thetahat[c(1,2,3,4,5,6,7,8)],pi_est))
+      thetahat = unlist(est[1:9])
       z=z_new
       pi_est = colMeans(z)
     }else{

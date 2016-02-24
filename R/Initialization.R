@@ -19,19 +19,20 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
     inds = matrix(0,ncol=K,nrow=nrow(Ntot))
     if(sum(indicator)>0){
     		for(i in which(indicator)){
-    			inds[i,]=0.25
+    			inds[i,]=1/K
     		}
     }
     for(i in which(!indicator)){
-    	inds[i,]=0.25
+    	inds[i,]=1/K
     }
    inds2 = rowSums(inds[,1:4] )>0
-   thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[inds2]))
+   thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[indicator]))
    thetahat[5] = logit(mean((nu1/Ntot[,"nu1"])))
-   thetahat[3] = logit(mean((ns0/Ntot[,"ns0"])[inds2]))
+   thetahat[3] = logit(mean((ns0/Ntot[,"ns0"])[indicator]))
    thetahat[7] = logit(mean((nu0/Ntot[,"nu0"])))
    thetahat[2] = 2
    thetahat[4] = 2
+   thetahat[8] = 2
    thetahat[6] = 2
    thetahat[c(1,3,5,7)][is.infinite(thetahat[c(1,3,5,7)])]=log(1e-6)
 
@@ -46,7 +47,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
       par = thetahat,
       fn = sumcll,
       pi_est = pi_est,
-      inds = inds,
+      z = inds,
       Ntot = Ntot,
       ns1 = ns1,
       nu1 = nu1,
@@ -62,7 +63,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
         fn = sumcll,
         method="bobyqa",
         pi_est = pi_est,
-        inds = inds,
+        z = inds,
         Ntot = Ntot,
         ns1 = ns1,
         nu1 = nu1,
