@@ -26,6 +26,7 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
     	inds[i,]=1/K
     }
    inds2 = rowSums(inds[,1:4] )>0
+
    thetahat[1] = logit(mean((ns1/Ntot[,"ns1"])[indicator]))
    thetahat[5] = logit(mean((nu1/Ntot[,"nu1"])))
    thetahat[3] = logit(mean((ns0/Ntot[,"ns0"])[indicator]))

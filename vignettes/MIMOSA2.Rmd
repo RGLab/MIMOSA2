@@ -120,6 +120,7 @@ The data is input into the `MIMOSA2` modeling function.
 
 ```{r,fig.width=6,fig.height=6}
 load_all()
+fit = with(s, MIMOSA2(Ntot=Ntot,ns1=nu1,nu1=ns1,ns0=nu0,nu0=ns0,tol=1e-5))
 fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-5))
 ```
 
@@ -148,7 +149,9 @@ The large number of false negatives is not surprising, given the number of ways 
 We can generate ROCs comparing against a standard test of odds ratios.
 
 ```{r,fig.width=6,fig.height=6}
+ortest = with(s,ORTest(Ntot,nu1,ns1,nu0,ns0))
 ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
+
 toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
@@ -167,3 +170,5 @@ lines(y=ortest[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l"
 abline(0,1,lty=2)
 legend("bottomrigh",c("MIMOSA2","ORTest"),col=c("blue","red"),lty=1)
 ```
+
+

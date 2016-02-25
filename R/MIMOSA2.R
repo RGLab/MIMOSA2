@@ -35,11 +35,18 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   #'Initialize parameter estimates
   inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K)
   thetahat = inits$thetahat
-  #thetahat[c(1,3,5,7)]=sort(thetahat[c(1,3,5,7)],decreasing=TRUE)
+  thetahat[c(1,3,5,7)]=sort(thetahat[c(1,3,5,7)],decreasing=TRUE)
   pi_est = inits$pi_est
   z=inits$inds
 
-
+  ps1=ns1/Ntot[,"ns1"]
+  pu1=nu1/Ntot[,"nu1"]
+  ps0=ns0/Ntot[,"ns0"]
+  pu0=nu0/Ntot[,"nu0"]
+  dp = ps1-pu1-ps0+pu0
+  dp1 = ps1-pu1
+  dp0 = ps0-pu0
+  dpu = pu0-pu1
 
   #' Per observation complete data log likelihood matrix
   mat = cll(par=thetahat,
@@ -48,6 +55,10 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
             nu1=nu1,
             ns0=ns0,
             nu0=nu0)
+  mat[dp<0,]=t(apply(mat[dp<0,],1,function(x)c(rep(min(x),2),x[3],min(x),x[5:8]))) #constraints deltap < 0
+  for(i in which (dpu<0)){
+    mat[i,3]=mat[i,3]+mat[i,8]
+  }
   mat = t(t(mat)+log1p(pi_est))
   mx = apply(mat,1,max)
   tmp = exp(mat-mx)
@@ -82,13 +93,17 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
     if(!inherits(est,"try-error")){
       est=est[order(est[,"convcode"],est[,"value"],decreasing=FALSE)[1],,drop=FALSE]
       est = unlist(est[1:8])
-      #est[c(1,3,5,7)]=sort(est[c(1,3,5,7)],decreasing=TRUE)
+      est[c(1,3,5,7)]=sort(est[c(1,3,5,7)],decreasing=TRUE)
       mat_new = cll(par=unlist(est[1:8]),
                 Ntot=Ntot,
                 ns1=ns1,
                 nu1=nu1,
                 ns0=ns0,
                 nu0=nu0)
+      mat[dp<0,]=t(apply(mat[dp<0,],1,function(x)c(rep(min(x),2),x[3],min(x),x[5:8]))) #constraints deltap < 0
+      for(i in which (dpu<0)){
+        mat[i,3]=mat[i,3]+mat[i,8]
+      }
       mat=t(t(mat)+log1p(pi_est))
       mx = apply(mat_new,1,max)
       tmp = exp(mat_new-mx)
@@ -97,7 +112,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       if(verbose)
         cat(sum(abs(unlist(est[c(1,2,3,4,5,6,7,8)])-thetahat[c(1,2,3,4,5,6,7,8)])),"\n")
       ldiff = abs(c(unlist(est[c(1,2,3,4,5,6,7,8)]),pi_new)-c(thetahat[c(1,2,3,4,5,6,7,8)],pi_est))
-      thetahat = unlist(est[1:9])
+      thetahat = unlist(est[1:8])
       z=z_new
       pi_est = colMeans(z)
     }else{
