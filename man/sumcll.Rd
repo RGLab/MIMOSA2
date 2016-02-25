@@ -2,19 +2,19 @@
 % Please edit documentation in R/likelihoods.R
 \name{sumcll}
 \alias{sumcll}
-\title{Sum of the complete data log-likelihood across all observations.}
+\title{Calculate the complete data log-likelihood across all observations.}
 \usage{
-sumcll(..., inds, pi_est)
+sumcll(..., z, pi_est)
 }
 \arguments{
 \item{...}{all model parameters and data (par, Ntot, ns0,ns1,nu0,nu1)}
 
-\item{inds}{\code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.}
-
 \item{pi_est}{\code{numeric} the mixing proportions.}
+
+\item{inds}{\code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.}
 }
 \description{
-Sum of the complete data log-likelihood across all observations.
+Calculate the complete data log-likelihood across all observations.
 }
 \seealso{
 \link{bbll} \link{MIMOSA2}

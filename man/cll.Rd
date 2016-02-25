@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods.R
 \name{cll}
 \alias{cll}
-\title{Complete data log-likelihood}
+\title{log-likelihood of each component}
 \usage{
 cll(par, Ntot, ns1, nu1, ns0, nu0)
 }
@@ -20,10 +20,10 @@ cll(par, Ntot, ns1, nu1, ns0, nu0)
 \item{nu0}{\code{numeric} integer vector of successes in condition 0 treatment u.}
 }
 \description{
-Complete data log-likelihood
+log-likelihood of each component
 }
 \details{
-Calcualtes the complete data log-likelihood for each observation
+Calcualtes the  log-likelihood for each observation at each model component
 }
 \seealso{
 \link{bbll} \link{MIMOSA2}

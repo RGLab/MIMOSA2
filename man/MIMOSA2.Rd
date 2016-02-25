@@ -20,12 +20,30 @@ MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
 \item{tol}{\code{numeric} tolerance for stopping criteria, change in relative log-likelihood.}
 
 \item{maxit}{\code{numeric} maximum number of iterations}
+
+\item{verbose}{\code{logical} print the absolute difference of the sum of successive estimates of parameters. Defaults to FALSE}
 }
 \value{
 \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
 }
 \description{
 Fit a MIMOSA model with baseline.
+}
+\examples{
+s = simulate_MIMOSA2();
+R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
+
+Get the number of observations from the data.
+Estimate proportions from data
+Initialize parameter estimates
+Per observation complete data log likelihood matrix
+Current complete data log-likelihood
+Maximum itertions 100 (will be configurable).Current iteration 0
+Fitting loop, alternate E and M steps,
+stop when relative change in ll is 1e-5
+Assign hierarchically to either the
+responder or non-responder components
+update mixing proportions
 }
 \seealso{
 \link{ORTest} \link{ROC} \link{ROCPlot} \link{Boxplot} \link{simulate_MIMOSA2} \link{logit} \link{invlogit}

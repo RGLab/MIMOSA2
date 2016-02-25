@@ -101,7 +101,7 @@ We simulate from the model.
 
 ```{r sim}
 set.seed(100)
-s = simulate_MIMOSA2(effect=1e-4, baseline_stim_effect=1e-4,baseline_background = 5e-5,bg_effect = 5e-5,phi=15000,P=100,rng=c(100000,150000))
+s = simulate_MIMOSA2(effect=3e-4, baseline_stim_effect=1e-4,baseline_background = 5e-5,bg_effect = 5e-5,phi=15000,P=100,rng=c(100000,150000))
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 

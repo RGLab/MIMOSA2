@@ -6,7 +6,7 @@
 \usage{
 simulate_MIMOSA2(effect = 5e-04, bg_effect = 0,
   baseline_stim_effect = 0.00025, baseline_background = 1e-04, phi = 5000,
-  P = 100)
+  P = 100, rng = c(1e+05, 150000))
 }
 \arguments{
 \item{effect}{\code{numeric} effect size for ps1 - pu1 - ps0 + pu0. Default 5e-4}
@@ -20,6 +20,8 @@ simulate_MIMOSA2(effect = 5e-04, bg_effect = 0,
 \item{phi}{\code{numeric} integer, the precision. Default 5000}
 
 \item{P}{\code{numeric} number of subjects.'}
+
+\item{rng}{\code{numeric} vector of length 2. The range of total cell counts to simulate from.}
 }
 \value{
 \code{list} with components "Ntot" "ns0" "nu0" "ns1" "nu1" "truth"
