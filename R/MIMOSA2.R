@@ -55,8 +55,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
             nu1=nu1,
             ns0=ns0,
             nu0=nu0)
-  if(length(which(dp<0))>0)
-    mat[dp<0,]=t(apply(mat[dp<0,,drop=FALSE],1,function(x)c(rep(min(x[5:8]),4),x[5:8]))) #constraints deltap < 0
+  if(length(which((dp<0&dp1<0)|dp<0))>0)
+    mat[(dp<0&dp1<0)|dp<0,]=t(apply(mat[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(min(x),4),x[5:8])))      # for(i in which (dpu<0&dp<0)){
   # for(i in which (dpu<0&dp<0)){
   #   mat[i,3]=min(mat[i,])
   # }
@@ -101,9 +101,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
                 nu1=nu1,
                 ns0=ns0,
                 nu0=nu0)
-      if(length(which(dp<0))>0)
-        mat[dp<0,]=t(apply(mat[dp<0,,drop=FALSE],1,function(x)c(rep(min(x[5:8]),4),x[5:8]))) #constraints deltap < 0
-      # for(i in which (dpu<0&dp<0)){
+      if(length(which((dp<0&dp1<0)|dp<0))>0)
+        mat[(dp<0&dp1<0)|dp<0,]=t(apply(mat[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(min(x),4),x[5:8])))      # for(i in which (dpu<0&dp<0)){
       #   mat[i,3]=min(mat[i,])
       # }
       mat=t(t(mat)+log1p(pi_est))

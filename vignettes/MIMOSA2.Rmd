@@ -101,7 +101,7 @@ We simulate from the model.
 
 ```{r sim}
 set.seed(100)
-s = simulate_MIMOSA2(effect=3e-4, baseline_stim_effect=1e-4,baseline_background = 5e-5,bg_effect = 5e-5,phi=15000,P=100,rng=c(100000,150000))
+s = simulate_MIMOSA2(effect=5e-5, baseline_stim_effect=5e-5,baseline_background = 2e-5,bg_effect =2e-5,phi=c(50000,50000,50000,50000),P=100,rng=c(120000,150000))
 ```
 
 `s` is a `list` with components `names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0". These correspond to the total T-cell counts for stimulated and unstimulated conditions at time 0 and time 1 (pre-vaccine and post-vaccine). There is also an entry "truth" which holds the ground truth model component from which each subject was simulated. 
@@ -137,7 +137,13 @@ We plot the results.
 ```{r,fig.width=6,fig.height=6}
 Boxplot(obj=fit,truth=s$truth)
 p =with(s,{p = do.call(cbind,mget(colnames(Ntot)))/Ntot;colnames(p)=c("pu1","ps1","pu0","ps0");data.frame(p,truth)})
+```
+
+```{r}
 ggplot(melt(p,value.var=c("pu1","ps1","pu0","ps0")))+geom_boxplot(outlier.col=NA)+facet_wrap(~variable)+geom_jitter()+aes(x=truth,y=value)
+```
+
+```{r}
 ggplot(p)+geom_boxplot(outlier.col=NA)+geom_jitter()+aes(x=truth,y=ps1-pu1-ps0+pu0)
 ```
 
@@ -156,6 +162,35 @@ toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
+```{r}
+foo = function(fit,truth){
+  th = MIMOSA:::fdr(cbind(1-rowSums(fit$z[,1:4]),fit$z[,1:4]))
+  o = order(th,decreasing=FALSE)
+  tpc = cumsum(truth[o])
+  fpc = cumsum(!truth[o])
+  plot(y=tpc,th[o],type="l",ylab="Count",xlab="FDR Threshold",col="blue")
+  lines(y=fpc,th[o],type="l",col="red")
+  legend("top",c("TPC","FPC"),col=c("blue","red"),lty=1,cex=0.75)
+}
+foo2 = function(thresh,truth,add=FALSE,lty=3,...){
+  th = thresh
+  o = order(th,decreasing=FALSE)
+  tpc = cumsum(truth[o])
+  fpc = cumsum(!truth[o])
+  tpc = tpc/length(tpc)
+  fpc = fpc/length(fpc)
+  if(add){
+      lines(y=tpc,th[o],type="l",ylab="Rate",xlab="FDR Threshold",col="blue",lty=ifelse(add,lty,1))
+  }else{
+      plot(y=tpc,th[o],type="l",ylab="Rate",xlab="FDR Threshold",col="blue",...)
+  }
+  lines(y=fpc,th[o],type="l",col="red",lty=ifelse(add,lty,1))
+}
+foo2(MIMOSA::fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4]))),s$truth%in%c("R1","R2","R3","R4"))
+foo2(ortest,s$truth%in%c("R1","R2","R3","R4"),add=TRUE)
+legend("topleft",lty=c(1,2),c("MIMOSA","OR Test"))
+```
+
 The ROC curves show that MIMOSA2 performs better than a one-sided test for a difference in odds ratios. 
 
 ### Control of the false discovery rate.
@@ -170,5 +205,15 @@ lines(y=ortest[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l"
 abline(0,1,lty=2)
 legend("bottomrigh",c("MIMOSA2","ORTest"),col=c("blue","red"),lty=1)
 ```
+
+```{r}
+ggplot(data.frame(deltap=with(fit,ps1_hat-pu1_hat-ps0_hat+pu0_hat),response=factor(s$truth%in%c("R1","R2","R3","R4"),labels=c("Non Responder","Responder"))))+geom_boxplot(outlier.col=NA)+geom_jitter()+aes(x=response,y=deltap)+theme_bw()+scale_y_continuous("ps1-pu1-(ps0-pu0)")
+ggplot(data.frame(deltap=with(fit,ps1_hat-pu1_hat),response=factor(s$truth%in%c("R1","R2","R3","R4"),labels=c("Non Responder","Responder"))))+geom_boxplot(outlier.col=NA)+geom_jitter()+aes(x=response,y=deltap)+theme_bw()+scale_y_continuous("ps1-pu1")
+ggplot(data.frame(deltap=with(fit,ps0_hat-pu0_hat),response=factor(s$truth%in%c("R1","R2","R3","R4"),labels=c("Non Responder","Responder"))))+geom_boxplot(outlier.col=NA)+geom_jitter()+aes(x=response,y=deltap)+theme_bw()+scale_y_continuous("ps0-pu0")
+```
+
+
+
+
 
 

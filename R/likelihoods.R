@@ -141,7 +141,18 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #' @seealso \link{bbll} \link{MIMOSA2}
 sumcll = function(..., z, pi_est) {
   params = as.list(...)
-  -(sum(z * t(log1p(pi_est) + t(cll(...)))))#+dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)+dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE))
+  mus = unlist(params[c(1,3,5,7)])
+  mus = invlogit(mus)
+  -(sum(z * t(log1p(pi_est) + t(cll(...)))))+
+    dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+
+    dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+
+    dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)+
+    dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)-
+  dnorm(mus[1]-mus[3]-mus[2]+mus[4],mean=1e-4,sd=5e-4,log=TRUE)-
+    dnorm(mus[1]-mus[3],mean=1e-4,sd=5e-4,log=TRUE)-
+    dnorm(mus[2]-mus[4],mean=1e-4,sd=5e-4,log=TRUE)-
+    dnorm(mus[1]-mus[2],mean=1e-4,sd=5e-4,log=TRUE)-
+    dnorm(mus[3]-mus[4],mean=1e-4,sd=5e-4,log=TRUE)
 }
 
 

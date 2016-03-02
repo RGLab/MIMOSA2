@@ -44,7 +44,10 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
 
   #'Precision of hyperprior
   #'$\alpha+\beta = \phi$
-  PHI = rep(phi,4)
+  if(length(phi)!=4)
+    PHI = rep(phi,4)
+  else
+    PHI=phi
 
   #' There are 8 model components.
   #' 1. all different
@@ -70,7 +73,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   while (any(ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0)) {
     bar = ps1 <= pu1 | ps0 <= pu0 | ps1-pu1 <= ps0 - pu0
     foo = sum(bar)
-    ps0[bar] = rbeta(foo, MS0 * PHI[3], (1 - MS0) * PHI[4])
+    ps0[bar] = rbeta(foo, MS0 * PHI[3], (1 - MS0) * PHI[3])
     ps1[bar] = rbeta(foo, MS1 * PHI[4], (1 - MS1) * PHI[4])
   }
   if (effect == 0) {
