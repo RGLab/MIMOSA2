@@ -83,7 +83,6 @@ const = function(n,k){
   bbll(par[c(7,8)],rowSums(Ntot[,c("ns1","ns0")]),ns1+ns0)+
     bbll(par[c(1,2)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)
 }
-
 .ll9 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(1,2)],(Ntot[,c("nu1")]),nu1)+
     bbll(par[c(7,8)], rowSums(Ntot[,c("ns1","nu0","ns0")]), ns1+nu0+ns0)
