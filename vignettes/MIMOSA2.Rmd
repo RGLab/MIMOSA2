@@ -177,8 +177,8 @@ foo2 = function(thresh,truth,add=FALSE,lty=3,...){
   o = order(th,decreasing=FALSE)
   tpc = cumsum(truth[o])
   fpc = cumsum(!truth[o])
-  tpc = tpc/length(tpc)
-  fpc = fpc/length(fpc)
+  tpc = tpc/sum(truth)
+  fpc = fpc/sum(!truth)
   if(add){
       lines(y=tpc,th[o],type="l",ylab="Rate",xlab="FDR Threshold",col="blue",lty=ifelse(add,lty,1))
   }else{

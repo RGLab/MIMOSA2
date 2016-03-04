@@ -81,20 +81,20 @@ const = function(n,k){
 
 .ll8 = function(par, Ntot, ns1, nu1, ns0, nu0) {
   bbll(par[c(7,8)],rowSums(Ntot[,c("ns1","ns0")]),ns1+ns0)+
-    bbll(par[c(1,2)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)#+log(nu1/Ntot[, "nu1"]+nu0/Ntot[, "nu0"]+1)+log(-ns1/Ntot[, "ns1"]+nu1/Ntot[, "nu1"]+ns0/Ntot[, "ns0"]-nu0/Ntot[, "nu0"]+1)
+    bbll(par[c(1,2)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)
 }
-# .ll9 = function(par, Ntot, ns1, nu1, ns0, nu0) {
-#   bbll(par[c(1,2)],(Ntot[,c("nu1")]),nu1)+
-#     bbll(par[c(3,4)], rowSums(Ntot[,c("ns1","nu0","ns0")]), ns1+nu0+ns0)+log(nu1/Ntot[, "nu1"]-ns1/Ntot[, "ns1"]+1)
-# }
-# .ll10 = function(par,Ntot,ns1,nu1,ns0,nu0){
-#   bbll(par[c(1,2)],(Ntot[,c("nu1")]),nu1)+bbll(par[c(3,4)], (Ntot[,c("ns1")]), ns1)+
-#     bbll(par[c(5,6)],(Ntot[,c("ns0")]),ns0)+bbll(par[c(7,8)], (Ntot[,c("nu0")]), nu0)+log(nu1/Ntot[, "nu1"]-ns1/Ntot[, "ns1"]+1)
-# }
-# .ll11 = function(par,Ntot,ns1,nu1,ns0,nu0){
-#   bbll(par[c(1,2)],(Ntot[,c("nu1")]),nu1)+bbll(par[c(3,4)], (Ntot[,c("ns1")]), ns1)+
-#     bbll(par[c(7,8)],(Ntot[,c("ns0")]+Ntot[,c("nu0")]),ns0+nu0)+log(nu1/Ntot[, "nu1"]-ns1/Ntot[, "ns1"]+1)
-# }
+.ll11 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(1,2)],rowSums(Ntot[,c("ns1","ns0")]),ns1+ns0)+
+    bbll(par[c(7,8)], rowSums(Ntot[,c("nu1","nu0")]), nu0+nu1)
+}
+.ll9 = function(par, Ntot, ns1, nu1, ns0, nu0) {
+  bbll(par[c(1,2)],(Ntot[,c("nu1")]),nu1)+
+    bbll(par[c(7,8)], rowSums(Ntot[,c("ns1","nu0","ns0")]), ns1+nu0+ns0)
+}
+.ll10 = function(par,Ntot,ns1,nu1,ns0,nu0){
+  bbll(par[c(1,2)],(Ntot[,c("nu0")]),nu0)+
+    bbll(par[c(7,8)], rowSums(Ntot[,c("ns1","nu1","ns0")]), ns1+nu1+ns0)
+}
 .llm1 = function(par,Ntot,ns,nu){
   const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
     bbll(par[c(1,2)],Ntot[,"nu"],nu)+
@@ -129,7 +129,10 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
    .ll5(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
    .ll6(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
     .ll7(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
-   .ll8(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0)
+   .ll8(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+   .ll9(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+   .ll10(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0),
+   .ll11(par,Ntot=Ntot, ns1=ns1, nu1=nu1, ns0=ns0, nu0=nu0)
   )
 }
 
