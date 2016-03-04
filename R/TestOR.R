@@ -20,20 +20,20 @@
 ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
   or_test = sapply(1:nrow(Ntot), function(i) {
     or_delta = log(fisher.test(rbind(
-      cbind(Ntot[i, "ns1"] + 1, ns1[i] + 1),
-      cbind(Ntot[i, "nu1"] + 1, nu1[i] + 1)
+      cbind(Ntot[i, "ns1"] + 1- ns1[i], ns1[i] + 1),
+      cbind(Ntot[i, "nu1"] + 1-nu1[i] , nu1[i] + 1)
     ))$estimate) -   log(fisher.test(rbind(
-      cbind(Ntot[i, "ns0"] + 1, ns0[i] + 1),
-      cbind(Ntot[i, "nu0"] +
+      cbind(Ntot[i, "ns0"] + 1- ns0[i] , ns0[i] + 1),
+      cbind(Ntot[i, "nu0"] -nu0[i]+
               1, nu0[i] + 1)
     ))$estimate)
     se_or_delta =  sqrt(sum(sqrt(sum(
-      1 / c(cbind(Ntot[i, "ns1"] + 1, ns1[i] + 1),
-            cbind(Ntot[i, "nu1"] + 1, nu1[i] + 1))
+      1 / c(cbind(Ntot[i, "ns1"] + 1-ns1[i], ns1[i] + 1),
+            cbind(Ntot[i, "nu1"] + 1-nu1[i], nu1[i] + 1))
     )) ^ 2,
     sqrt(sum(
-      1 / c(cbind(Ntot[i, "ns0"] + 1, ns0[i] + 1),
-            cbind(Ntot[i, "nu0"] + 1, nu0[i] + 1))
+      1 / c(cbind(Ntot[i, "ns0"] + 1-ns0[i], ns0[i] + 1),
+            cbind(Ntot[i, "nu0"] + 1-nu0[i], nu0[i] + 1))
     )) ^ 2))
     pnorm(or_delta / se_or_delta) #one sided test
   })
@@ -123,10 +123,10 @@ Boxplot = function(obj,truth){
     contrast = ps1_hat - pu1_hat - ps0_hat + pu0_hat,
     truth,
     inds = max.col(inds)
-  )) + geom_boxplot(outlier.colour = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR")))) + geom_jitter(
-                                                 aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"))),position=position_jitterdodge(),
+  )) + geom_boxplot(outlier.col = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8","9","10","11"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4")))) + geom_jitter(
+                                                 aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8","9","10","11"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"))),position=position_jitterdodge(),
                                                  show.legend = FALSE
-                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(3),"#FFFF00"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"),limits=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"))
+                                               ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(7)),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"),limits=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"))
 })
 }
 

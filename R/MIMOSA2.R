@@ -21,7 +21,7 @@
 #'
 MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   require(optimx)
-  K=8
+  K=11
   rcomps = c(1:4)
   #' Get the number of observations from the data.
   P = nrow(Ntot)
@@ -56,7 +56,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
             ns0=ns0,
             nu0=nu0)
   if(length(which((dp<0&dp1<0)|dp<0))>0)
-    mat[(dp<0&dp1<0)|dp<0,]=t(apply(mat[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(min(x),4),x[5:8])))      # for(i in which (dpu<0&dp<0)){
+    mat[(dp<0&dp1<0)|dp<0,]=t(apply(mat[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(-10000,4),x[5:11])))      # for(i in which (dpu<0&dp<0)){
   # for(i in which (dpu<0&dp<0)){
   #   mat[i,3]=min(mat[i,])
   # }
@@ -84,7 +84,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       par = thetahat,
       fn = sumcll,
       pi_est = pi_est,
-      inds = z,
+      z = z,
       Ntot = Ntot,
       ns1 = ns1,
       nu1 = nu1,
@@ -102,10 +102,10 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
                 ns0=ns0,
                 nu0=nu0)
       if(length(which((dp<0&dp1<0)|dp<0))>0)
-        mat[(dp<0&dp1<0)|dp<0,]=t(apply(mat[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(min(x),4),x[5:8])))      # for(i in which (dpu<0&dp<0)){
+        mat_new[(dp<0&dp1<0)|dp<0,]=t(apply(mat_new[(dp<0&dp1<0)|dp<0,,drop=FALSE],1,function(x)c(rep(-10000,4),x[5:11])))      # for(i in which (dpu<0&dp<0)){
       #   mat[i,3]=min(mat[i,])
       # }
-      mat=t(t(mat)+log1p(pi_est))
+      mat_new=t(t(mat_new)+log1p(pi_est))
       mx = apply(mat_new,1,max)
       tmp = exp(mat_new-mx)
       z_new = (tmp/rowSums(tmp))
