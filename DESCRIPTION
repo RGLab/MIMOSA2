@@ -1,6 +1,6 @@
 Package: MIMOSA2
 Title: MIMOSA with baseline
-Version: 0.0.5
+Version: 0.1.0
 Authors@R: person("Greg", "Finak", email = "gfinak@fhcrc.org", role = c("aut", "cre"))
 Description: Fits a MIMOSA model to data with baseline.
 Depends:
@@ -10,6 +10,7 @@ LazyData: true
 Imports:
     data.table,
     ggplot2,
+    optimx,
     matrixStats,
 Suggests:
     knitr,

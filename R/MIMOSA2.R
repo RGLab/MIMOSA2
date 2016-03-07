@@ -20,7 +20,6 @@
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #'
 MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
-  require(optimx)
   K=11
   rcomps = c(1:4)
   #' Get the number of observations from the data.
