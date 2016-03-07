@@ -104,12 +104,12 @@ const = function(n,k){
   const(Ntot[,"ns"],ns)+const(Ntot[,"nu"],nu)+
     bbll(par[c(1,2)],Ntot[,"ns"]+Ntot[,"nu"],ns+nu)
 }
-.cllm0m1 = function(par,Ntot,ns,nu){
-  cbind(llm0(par,Ntot,ns,nu),llm1(par,Ntot,ns,nu))
-}
-.sumcllm0m1 = function(..., inds, pi_est) {
-  sum(inds * t(log(pi_est) + t(cll(...))))
-}
+# .cllm0m1 = function(par,Ntot,ns,nu){
+#   cbind(llm0(par,Ntot,ns,nu),llm1(par,Ntot,ns,nu))
+# }
+# .sumcllm0m1 = function(..., inds, pi_est) {
+#   sum(inds * t(log(pi_est) + t(cll(...))))
+# }
 
 #' log-likelihood of each component
 #' @details Calcualtes the  log-likelihood for each observation at each model component
@@ -139,7 +139,7 @@ cll = function(par, Ntot, ns1, nu1, ns0, nu0) {
 #'Calculate the complete data log-likelihood across all observations.
 #'
 #' @param ... all model parameters and data (par, Ntot, ns0,ns1,nu0,nu1)
-#' @param inds \code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.
+#' @param z \code{matrix} of type \code{numeric} represents the posterior probabilities of the class assignments of each observation to each component. Rows sum to 1.
 #' @param pi_est \code{numeric} the mixing proportions.
 #' @seealso \link{bbll} \link{MIMOSA2}
 sumcll = function(..., z, pi_est) {

@@ -4,7 +4,7 @@
 \alias{MIMOSA2}
 \title{Fit a MIMOSA model with baseline.}
 \usage{
-MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
+MIMOSA2(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE)
 }
 \arguments{
 \item{Ntot}{\code{matrix} integer vector of total trials. One row per subject. Should have four columns named "ns1" "ns0" "nu1" and "nu0"}
@@ -31,19 +31,7 @@ Fit a MIMOSA model with baseline.
 }
 \examples{
 s = simulate_MIMOSA2();
-R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-
-Get the number of observations from the data.
-Estimate proportions from data
-Initialize parameter estimates
-Per observation complete data log likelihood matrix
-Current complete data log-likelihood
-Maximum itertions 100 (will be configurable).Current iteration 0
-Fitting loop, alternate E and M steps,
-stop when relative change in ll is 1e-5
-Assign hierarchically to either the
-responder or non-responder components
-update mixing proportions
+R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 }
 \seealso{
 \link{ORTest} \link{ROC} \link{ROCPlot} \link{Boxplot} \link{simulate_MIMOSA2} \link{logit} \link{invlogit}

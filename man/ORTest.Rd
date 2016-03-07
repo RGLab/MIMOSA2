@@ -31,7 +31,7 @@ Test delta / SE from standard normal.
 }
 \examples{
 s = simulate_MIMOSA2()
-R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
+R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 }
 \seealso{

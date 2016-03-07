@@ -15,7 +15,7 @@
 #' @seealso \link{MIMOSA2}
 #' @examples
 #' s = simulate_MIMOSA2()
-#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
+#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
   or_test = sapply(1:nrow(Ntot), function(i) {
@@ -52,7 +52,7 @@ ORTest = function(Ntot, ns1, nu1, ns0, nu0) {
 #' s = simulate_MIMOSA2()
 #' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-#' ROC(or_test = or_result, fit=R, truth = s$truth=="R")
+#' ROC(or_test = or_result, fit=R, truth = s$truth%in%c("R1","R2","R3","R4"))
 ROC = function(or_test, fit, truth) {
   rcomps=c(1:4)
   empirical_responder =  (fit$ps1_hat>fit$pu1_hat) & ((fit$ps1_hat-fit$pu1_hat) > (fit$ps0_hat-fit$pu0_hat))&((fit$ps1_hat-fit$ps0_hat) > (fit$pu1_hat-fit$pu0_hat))
@@ -79,9 +79,9 @@ ROC = function(or_test, fit, truth) {
 #' @seealso \link{MIMOSA2}
 #' @examples
 #' s = simulate_MIMOSA2()
-#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
+#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 #' or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-#' roc = ROC(or_test = or_result, fit=R, truth = s$truth=="R")
+#' roc = ROC(or_test = or_result, fit=R, truth = s$truth%in%c("R1","R2","R3","R4"))
 #' ROCPlot(roc)
 ROCPlot = function(R,lambda=1) {
   p = ggplot(R) +
@@ -115,7 +115,7 @@ ROCPlot = function(R,lambda=1) {
 #' @seealso \link{MIMOSA2}
 #' @examples
 #' s = simulate_MIMOSA2()
-#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
+#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 #' Boxplot(obj = R,truth = s$truth)
 Boxplot = function(obj,truth){
   with(obj,{

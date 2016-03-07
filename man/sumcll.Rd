@@ -9,9 +9,9 @@ sumcll(..., z, pi_est)
 \arguments{
 \item{...}{all model parameters and data (par, Ntot, ns0,ns1,nu0,nu1)}
 
-\item{pi_est}{\code{numeric} the mixing proportions.}
+\item{z}{\code{matrix} of type \code{numeric} represents the posterior probabilities of the class assignments of each observation to each component. Rows sum to 1.}
 
-\item{inds}{\code{matrix} of type \code{numeric} represents the max(z's), i.e. the class assignments of each observation to each component.}
+\item{pi_est}{\code{numeric} the mixing proportions.}
 }
 \description{
 Calculate the complete data log-likelihood across all observations.

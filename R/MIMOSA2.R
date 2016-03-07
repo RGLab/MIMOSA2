@@ -7,9 +7,9 @@
 #' @param ns0 \code{numeric} integer vector of successes in condition 0 treatment s.
 #' @param nu0 \code{numeric} integer vector of successes in condition 0 treatment u.
 #' @param tol \code{numeric} tolerance for stopping criteria, change in relative log-likelihood.
-#' @param verbose \code{logical} print the absolute difference of the sum of successive estimates of parameters. Defaults to FALSE
 #' @param maxit \code{numeric} maximum number of iterations
-#' @usage MIMOSA2(Ntot,ns1,nu1,ns0,nu0)
+#' @param verbose \code{logical} print the absolute difference of the sum of successive estimates of parameters. Defaults to FALSE
+#' @usage MIMOSA2(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE)
 #' @return \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
 #' @export
 #' @importFrom matrixStats logSumExp
@@ -17,21 +17,20 @@
 #' @seealso \link{ORTest} \link{ROC} \link{ROCPlot} \link{Boxplot} \link{simulate_MIMOSA2} \link{logit} \link{invlogit}
 #' @examples
 #' s = simulate_MIMOSA2();
-#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0)
-#'
+#' R = MIMOSA2(Ntot=s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s$ns0,maxit=10)
 MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   K=11
   rcomps = c(1:4)
-  #' Get the number of observations from the data.
+  # Get the number of observations from the data.
   P = nrow(Ntot)
 
-  #' Estimate proportions from data
+  # Estimate proportions from data
   pu1_hat = prop.table(cbind(Ntot[, "nu1"], nu1), 1)[, 2]
   ps1_hat = prop.table(cbind(Ntot[, "ns1"], ns1), 1)[, 2]
   pu0_hat = prop.table(cbind(Ntot[, "nu0"], nu0), 1)[, 2]
   ps0_hat = prop.table(cbind(Ntot[, "ns0"], ns0), 1)[, 2]
 
-  #'Initialize parameter estimates
+  # Initialize parameter estimates
   inits = initialize(P,Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,K=K)
   thetahat = inits$thetahat
   thetahat[c(1,3,5,7)]=sort(thetahat[c(1,3,5,7)],decreasing=TRUE)
@@ -47,7 +46,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   dp0 = ps0-pu0
   dpu = pu0-pu1
 
-  #' Per observation complete data log likelihood matrix
+  # Per observation complete data log likelihood matrix
   mat = cll(par=thetahat,
             Ntot=Ntot,
             ns1=ns1,
@@ -64,15 +63,15 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   tmp = exp(mat-mx)
   z = (tmp/rowSums(tmp))
   pi_est = colMeans(z)
-  #'Current complete data log-likelihood
+  #Current complete data log-likelihood
 
   ldiff=Inf
-  #' Maximum itertions 100 (will be configurable).Current iteration 0
+  # Maximum itertions 100 (will be configurable).Current iteration 0
   maxiter=maxit
   iter=0
 
-  #'Fitting loop, alternate E and M steps,
-  #' stop when relative change in ll is 1e-5
+  #Fitting loop, alternate E and M steps,
+  # stop when relative change in ll is 1e-5
   brk=FALSE
   while (all(ldiff > tol)) {
     iter=iter+1
@@ -121,8 +120,8 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
 
 
 
-    #' Assign hierarchically to either the
-    #' responder or non-responder components
+    # Assign hierarchically to either the
+    # responder or non-responder components
     inds_resp = max.col(cbind(rowSums(z[, rcomps,drop=FALSE]), 1-rowSums(z[, rcomps,drop=FALSE])))
 
     inds = matrix(0, nrow = P, ncol = K)
@@ -136,7 +135,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       inds[i, ] = v
     }
 
-    #' update mixing proportions
+    # update mixing proportions
     if(brk){
       break
     }

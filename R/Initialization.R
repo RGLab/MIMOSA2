@@ -6,6 +6,7 @@
 #' @param nu1 vector of counts at time 1 unstimulated
 #' @param ns0 vector of counts at time 0 stimulated
 #' @param nu0 vector of counts at time 0 unstimulated
+#' @param K \code{numeric} number of components in the model.
 #' @return \code{list} of initialized parameter estimates with components \code{inds} \code{theta_hat} \code{pi_est}.
 initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
   reps=ifelse(ncol(Ntot)>2,4,2)
@@ -101,6 +102,6 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
 
   thetahat = bestest$par
 
-  #'Estimate pi, mixing proportions
+  #Estimate pi, mixing proportions
   return(list(thetahat=thetahat,pi_est=pi_est,inds=inds))
 }

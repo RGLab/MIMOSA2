@@ -18,10 +18,11 @@ initialize(P, Ntot, ns1, nu1, ns0, nu0, K)
 \item{ns0}{vector of counts at time 0 stimulated}
 
 \item{nu0}{vector of counts at time 0 unstimulated}
+
+\item{K}{\code{numeric} number of components in the model.}
 }
 \value{
 \code{list} of initialized parameter estimates with components \code{inds} \code{theta_hat} \code{pi_est}.
-Estimate pi, mixing proportions
 }
 \description{
 Initialize model parameters

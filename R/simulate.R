@@ -16,55 +16,55 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
                     phi = 5000,
                     P = 100,rng = c(100000,150000)) {
 
-  #' Run 100 simulations, dropping any errors (i.e. simulations that error out)
+  # Run 100 simulations, dropping any errors (i.e. simulations that error out)
   K = 8
   n=rep(0,K)
   while(sum(n)!=P|any(P==0)){
-  #'proportion of vaccine specific responses
+  #proportion of vaccine specific responses
   pis = (prop.table(runif(K)))
   #pis = sort(pis, decreasing = TRUE)
   R = NULL
   D = 4
 
-  #' Total observations simulated
-  #' from uniform with between 100,000 and 150,000 cells
+  # Total observations simulated
+  # from uniform with between 100,000 and 150,000 cells
   Ntot = matrix(round(runif(P * D, rng[1], rng[2])), ncol = D, nrow = P)
 
-  #' Hyperprior mean for stimulated time 0
+  # Hyperprior mean for stimulated time 0
   MU0 = baseline_background
 
   MS0 = baseline_stim_effect+MU0
 
-  #' Non Stimulated post vaccine
+  # Non Stimulated post vaccine
   MU1 = MU0 + bg_effect
 
-  #' Mean of hyperprior (stimulated time 1) $\alpha/(\alpha+\beta)$
+  # Mean of hyperprior (stimulated time 1) $\alpha/(\alpha+\beta)$
   MS1 = MU1 + effect
 
 
-  #'Precision of hyperprior
-  #'$\alpha+\beta = \phi$
+  #Precision of hyperprior
+  #$\alpha+\beta = \phi$
   if(length(phi)!=4)
     PHI = rep(phi,4)
   else
     PHI=phi
 
-  #' There are 8 model components.
-  #' 1. all different
-  #' 2. s0=u0
-  #' 3. s1 = s0
-  #' 4. u1 = u0
-  #' 5. s0 = u0, s1 = u1
-  #' 6. s1 = u1
-  #' 7. s1 = u1 = s0 = u0
-  #' 8. s1 = s0, u1 = u0
+  # There are 8 model components we simulate from:
+  # 1. all different
+  # 2. s0=u0
+  # 3. s1 = s0
+  # 4. u1 = u0
+  # 5. s0 = u0, s1 = u1
+  # 6. s1 = u1
+  # 7. s1 = u1 = s0 = u0
+  # 8. s1 = s0, u1 = u0
 
-  #' number of responders / non-responders / non-specific responders
+  # number of responders / non-responders / non-specific responders
   n = round(P * pis)
   }
 
   PS0=PS1=PU0=PU1=NULL
-  #'Simulate from component 1
+  #Simulate from component 1
   k=1
   ps0 = rep(0, n[k])
   ps1 = rep(0, n[k])
@@ -84,7 +84,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #'Simulate from component 2
+  #Simulate from component 2
   k=2
   pu1 = rbeta(n[k], MU1 * PHI[1], (1 - MU1) * PHI[1])
   pu0 = rbeta(n[k], MU0 * PHI[2], (1 - MU0) * PHI[2])
@@ -104,7 +104,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS0=c(PS0,ps0)
 
 
-  #' Simulate from component 3.
+  # Simulate from component 3.
   k=3
   ps0 = ps1 = rbeta(n[k],MS1*PHI[4],(1-MS1)*PHI[4])
   pu0 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
@@ -121,7 +121,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #' Simulate from component 4.
+  # Simulate from component 4.
   k=4
   pu0 = pu1 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   ps1 = rbeta(n[k],MS1*PHI[4],(1-MS1)*PHI[4])
@@ -139,7 +139,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #'simulate from component 5
+  #simulate from component 5
   k=5
   ps1 = pu1 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   ps0 = pu0 = rbeta(n[k],MU1*PHI[1],(1-MU1)*PHI[1])
@@ -148,7 +148,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #'component 6
+  #component 6
   k=6
   ps1 = pu1 = rbeta(n[k],MU1*PHI[2],(1-MU1)*PHI[2])
   ps0  = rbeta(n[k],MS0*PHI[3],(1-MS0)*PHI[3])
@@ -165,7 +165,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #'component 7
+  #component 7
   k=7
   ps1=ps0=pu1=pu0 = rbeta(n[k],MU0*PHI[2],(1-MU0)*PHI[2])
   PU1=c(PU1,pu1)
@@ -173,7 +173,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS1=c(PS1,ps1)
   PS0=c(PS0,ps0)
 
-  #'component 8
+  #component 8
   k=8
   if(n[k]>0){
   ps0 = ps1 = rbeta(n[k],MS0*PHI[3],(1-MS0)*PHI[3])
@@ -184,7 +184,7 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   PS0=c(PS0,ps0)
 }
 
-  #' Simulate count observations from binomial.
+  # Simulate count observations from binomial.
   colnames(Ntot) = c("nu1", "ns1", "nu0", "ns0")
   nu1 = rbinom(P, Ntot[, "nu1"], PU1)
   ns1 = rbinom(P, Ntot[, "ns1"], PS1)
@@ -192,13 +192,13 @@ simulate_MIMOSA2 = function(effect = 5e-4, bg_effect = 0,baseline_stim_effect=2.
   ns0 = rbinom(P, Ntot[, "ns0"], PS0)
 
 
-  #' Empirical estimates of proportions
+  # Empirical estimates of proportions
   pu1_hat = prop.table(cbind(Ntot[, "nu1"], nu1), 1)[, 2]
   ps1_hat = prop.table(cbind(Ntot[, "ns1"], ns1), 1)[, 2]
   pu0_hat = prop.table(cbind(Ntot[, "nu0"], nu0), 1)[, 2]
   ps0_hat = prop.table(cbind(Ntot[, "ns0"], ns0), 1)[, 2]
 
-  #' True response categories
+  # True response categories
   truth = rep(
     c("R1","R2","R3","R4","NR1","NR2","NR3","NSR"),
     n
