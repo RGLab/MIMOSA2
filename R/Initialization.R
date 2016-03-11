@@ -19,29 +19,29 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
   r2 = nu0/Ntot[,"nu0"]>nu1/Ntot[,"nu1"]
   inds = matrix(0,ncol=K,nrow=nrow(Ntot))
 
-  if(sum(deltap>0&r1&r0)>0){
-    for(i in which(deltap>0&r1&r0)){
+  if(sum(deltap&r1&r0)>0){
+    for(i in which(deltap&r1&r0)){
       inds[i,1]=1
     }
   }
-  if(sum(deltap>0&r1&!r0)>0){
-    for(i in which(deltap>0&r1&!r0)){
+  if(sum(deltap&r1&!r0)>0){
+    for(i in which(deltap&r1&!r0)){
       inds[i,2]=1
     }
   }
-  if(sum(deltap>0&r2)>0){
-    for(i in which(deltap>0&r2&r1&r0)){
+  if(sum(deltap&r2)>0){
+    for(i in which(deltap&r2&r1&r0)){
       inds[i,3]=1
     }
   }
-  if(sum(deltap>0&r1&r0)>0){
-    for(i in which(deltap>0&r2&r1&r0)){
+  if(sum(deltap&r1&r0)>0){
+    for(i in which(deltap&r2&r1&r0)){
       inds[i,4]=1
     }
   }
-  if(sum(!deltap>0)>0){
-    for(i in which(!deltap>0)>0){
-      inds[i,5:8]=1
+  if(sum(!deltap)>0|sum(!r1)>0){
+    for(i in union(which(!deltap),which(!r1))){
+      inds[i,5:11]=1
     }
   }
    inds = inds/apply(inds,1,sum)
@@ -62,24 +62,24 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
   # make several initialization runs and take the best sometimes it fails miserably.
   bestest=NULL
   bestest$value=-Inf
-  for(k in 1:5){
-    est = try(optim(
-      par = thetahat,
-      fn = sumcll,
-      pi_est = pi_est,
-      z = inds,
-      Ntot = Ntot,
-      ns1 = ns1,
-      nu1 = nu1,
-      ns0 = ns0,
-      nu0 = nu0
-    ))
+  # for(k in 1:5){
+    # est = try(optim(
+    #   par = thetahat,
+    #   fn = sumcll,
+    #   pi_est = pi_est,
+    #   z = inds,
+    #   Ntot = Ntot,
+    #   ns1 = ns1,
+    #   nu1 = nu1,
+    #   ns0 = ns0,
+    #   nu0 = nu0
+    # ))
 
-    if(inherits(est,"try-error")){
-      bestest=est
-    }else if(k==1&est$convergence==0&est$value>bestest$value){
-      bestest=est
-    }else if (est$convergence!=0){
+    # if(inherits(est,"try-error")){
+    #   bestest=est
+    # }else if(k==1&est$convergence==0&est$value>bestest$value){
+    #   bestest=est
+    # }else if (est$convergence!=0){
       est = optimx(
         par = thetahat,
         fn = sumcll,
@@ -97,8 +97,8 @@ initialize = function(P,Ntot,ns1,nu1,ns0,nu0,K) {
         bestest$par=unlist(est[1:8])
         bestest$value = est$value
       }
-    }
-  }
+    # }
+  # }
 
   thetahat = bestest$par
 
