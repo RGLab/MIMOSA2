@@ -1,6 +1,6 @@
 ---
 title: "Mixture Models for Single Cell Assays with Baseline Measurements"
-author: "Greg Finak, PhD"
+author: "Greg Finak, PhD <br> Vaccine and Infectious Disease Division <br> Fred Hutchinson Cancer Research Center"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
