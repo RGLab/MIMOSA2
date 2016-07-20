@@ -141,11 +141,11 @@ p =with(s,{p = do.call(cbind,mget(colnames(Ntot)))/Ntot;colnames(p)=c("pu1","ps1
 ```
 
 ```{r,empirical_boxplots_vs_ps,message=FALSE,warning=FALSE}
-ggplot(melt(p,value.var=c("pu1","ps1","pu0","ps0")))+geom_boxplot(outlier.col=NA)+facet_wrap(~variable)+geom_jitter()+aes(x=truth,y=value)
+ggplot(melt(p,value.var=c("pu1","ps1","pu0","ps0")))+geom_boxplot(outlier.color=NA)+facet_wrap(~variable)+geom_jitter()+aes(x=truth,y=value)
 ```
 
 ```{r empiricalboxplots_vs_truth,message=FALSE,warning=FALSE}
-ggplot(p)+geom_boxplot(outlier.col=NA)+geom_jitter()+aes(x=truth,y=ps1-pu1-ps0+pu0)
+ggplot(p)+geom_boxplot(outlier.color=NA)+geom_jitter()+aes(x=truth,y=ps1-pu1-ps0+pu0)
 ```
 
 We have `r sum(table(fit=as.numeric(colnames(fit$inds)[max.col(fit$inds)]),truth = s$truth)[1:4,1:4])` false positives, and `r sum(table(fit=as.numeric(colnames(fit$inds)[max.col(fit$inds)]),truth = s$truth)[-c(1:4),c("R1","R2","R3","R4")])` false negatives. 

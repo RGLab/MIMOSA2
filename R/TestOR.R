@@ -123,7 +123,7 @@ Boxplot = function(obj,truth){
     contrast = ps1_hat - pu1_hat - ps0_hat + pu0_hat,
     truth,
     inds = max.col(inds)
-  )) + geom_boxplot(outlier.col = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8","9","10","11"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4")))) + geom_jitter(
+  )) + geom_boxplot(outlier.color = NA, aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8","9","10","11"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4")))) + geom_jitter(
                                                  aes(x = truth, y = contrast,fill=factor(inds,levels=c("1","2","3","4","5","6","7","8","9","10","11"),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"))),position=position_jitterdodge(),
                                                  show.legend = FALSE
                                                ) + theme_bw() + scale_y_continuous("(ps1-pu1)-(ps0-pu0)") + scale_x_discrete("True class")+scale_fill_manual("Fitted Components",values=c(colorRampPalette(c("#00FF00","#BBFFBB"))(4),colorRampPalette(c("#0000FF","#BBBBFF"))(7)),labels=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"),limits=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4"))
