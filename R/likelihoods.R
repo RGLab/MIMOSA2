@@ -146,10 +146,10 @@ sumcll = function(..., z, pi_est) {
   params = as.list(...)
   mus = unlist(params[c(1,3,5,7)])
   mus = invlogit(mus)
-  -(sum(z * t(log1p(pi_est) + t(cll(...)))))+
-    dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)+
-    dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)+
-    dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)+
+  -(sum(z * t(log1p(pi_est) + t(cll(...)))))-
+    dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)-
+    dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)-
+    dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)-
     dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)-
   dnorm(mus[1]-mus[3]-mus[2]+mus[4],mean=1e-4,sd=5e-4,log=TRUE)-
     dnorm(mus[1]-mus[3],mean=1e-4,sd=5e-4,log=TRUE)-
@@ -158,6 +158,21 @@ sumcll = function(..., z, pi_est) {
     dnorm(mus[3]-mus[4],mean=1e-4,sd=5e-4,log=TRUE)
 }
 
+# sumcll2 = function(..., z, pi_est,t) {
+#   params = as.list(...)
+#   mus = unlist(params[c(1,3,5,7)])
+#   mus = invlogit(mus)
+#   -(sum(z * t(log1p(pi_est) + t(cll(...)))))-
+#     dgamma((params[[2]]),shape=11/4,rate=0.5,log=TRUE)-
+#     dgamma((params[[6]]),shape=11/4,rate=0.5,log=TRUE)-
+#     dgamma((params[[8]]),shape=11/4,rate=0.5,log=TRUE)-
+#     dgamma((params[[4]]),shape=11/4,rate=0.5,log=TRUE)+
+#     t*(-log(mus[1]-mus[3]-mus[2]+mus[4])-
+#     log(mus[1]-mus[3])-
+#     log(mus[2]-mus[4])-
+#     log(mus[1]-mus[2])-
+#     log(mus[3]-mus[4]))
+# }
 
 #' logit
 #' @description Return the logit of p

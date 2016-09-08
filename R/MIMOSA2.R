@@ -73,11 +73,15 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   #Fitting loop, alternate E and M steps,
   # stop when relative change in ll is 1e-5
   brk=FALSE
-  while (all(ldiff > tol)) {
+  # t=1000
+  del=Inf
+  while (any(ldiff > tol)|del==0) {
     iter=iter+1
     if(iter>maxiter){
       break;
     }
+    # cat(t,"\n");
+    # t=log(t,1.1)
     est = try(optimx(
       par = thetahat,
       fn = sumcll,
@@ -88,11 +92,14 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       nu1 = nu1,
       ns0 = ns0,
       nu0 = nu0,
+      # t=t,
       method=c("newuoa","bobyqa")),silent = TRUE)
+
     if(!inherits(est,"try-error")){
       est=est[order(est[,"convcode"],est[,"value"],decreasing=FALSE)[1],,drop=FALSE]
       est = unlist(est[1:8])
       est[c(1,3,5,7)]=sort(est[c(1,3,5,7)],decreasing=TRUE)
+
       mat_new = cll(par=unlist(est[1:8]),
                 Ntot=Ntot,
                 ns1=ns1,
@@ -110,6 +117,7 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
       pi_new = colMeans(z_new)
       if(verbose)
         cat(sum(abs(unlist(est[c(1,2,3,4,5,6,7,8)])-thetahat[c(1,2,3,4,5,6,7,8)])),"\n")
+      del=sum(ldiff)-sum(abs(unlist(est[c(1,2,3,4,5,6,7,8)])-thetahat[c(1,2,3,4,5,6,7,8)]))
       ldiff = abs(c(unlist(est[c(1,2,3,4,5,6,7,8)]),pi_new)-c(thetahat[c(1,2,3,4,5,6,7,8)],pi_est))
       thetahat = unlist(est[1:8])
       z=z_new
