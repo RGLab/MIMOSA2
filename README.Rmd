@@ -1,0 +1,152 @@
+---
+title: ICS Modeling with baseline
+author: Greg Finak <gfinak@fredhutch.org>
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+# Background
+
+MIMOSA2 is an extension of the [http://github.com:RGLab/MIMOSA](MIMOSA) package for
+modeling immune responses to antigen stimulate using intracellular cytokine staining data.
+
+Input data are cell counts from ICS flow cytometry experiments. Specifically, the number of
+cytokine positive cells, and the total number of cells.
+
+Package usage is described below.
+
+# Usage
+
+```{r load}
+library(MIMOSA2)
+library(data.table)
+library(ggplot2)
+```
+
+We simulate from the model.
+
+```{r sim}
+set.seed(100)
+s = simulate_MIMOSA2(effect=2e-4, baseline_stim_effect=5e-5,baseline_background = 2e-5,bg_effect =2e-5,phi=c(50000,50000,50000,50000),P=100,rng=c(120000,150000))
+```
+
+`s` is a `list` with components `r names(s)`. `Ntot` is a matrix with column names "ns1" "nu1" "ns0" and "nu0".
+These correspond to the total T-cell counts for stimulated (ns) and non-stimulated (nu) conditions at time 0 and time 1 (pre-vaccine and post-vaccine, respectively).
+"ns0" through "nu1" are the positive cell counts.
+`truth` is the true model component producing each observation.
+There are eight different components in the model, each represents a different configuration of observed counts, producing
+either response, non-response, or non-specific response.
+
+
+```{r include=FALSE,simulation_freqs,echo=FALSE,results='asis'}
+tbl = table(data.frame(s$truth))
+tbl = data.frame(tbl)
+setnames(tbl, c("Component","Nobs"))
+knitr::kable(data.frame(tbl))
+```
+
+We fit the model with the `MIMOSA2` modeling function.
+
+
+```{r fitmodel,fig.width=6,fig.height=6}
+fit = with(s, MIMOSA2(Ntot=Ntot,ns1=ns1,nu1=nu1,ns0=ns0,nu0=nu0,tol=1e-5))
+```
+
+The output of MIMOSA2 is a list with components `r names(fit)`. "z" is matrix with the probability that each observation arises from each component. "inds" holds the hard assignment of each observation to each model component.
+
+The confusion matrix from the model fit is shown below.
+There is some confusion between the responder model components, and between the non-responder model components.
+However, discrimination of responders from non-responders is generally good, which is the important part.
+
+```{r confusion}
+table(fit=c("R1","R2","R3","R4","NR1","NR2","NR3","NSR","NSR2","NSR3","NSR4")[max.col(fit$z)],truth = s$truth)
+```
+
+We plot the empirical proportions from stimulated and non-stimulated samples at each timepoint,
+conditioning the true response status.
+
+```{r,empirical_boxplots_vs_ps,message=FALSE,warning=FALSE}
+p = with(s, {
+  p = do.call(cbind, mget(colnames(Ntot))) / Ntot
+  colnames(p) = c("pu1", "ps1", "pu0", "ps0")
+  data.frame(p, truth=truth%like%"^R")
+})
+ggplot(melt(p, value.var = c("pu1", "ps1", "pu0", "ps0"))) +
+  geom_boxplot(outlier.color = NA) +
+  facet_wrap( ~ variable) +
+  geom_jitter() +
+  aes(x = truth, y = value)+theme_classic()
+```
+
+Here we show the empirical background-corrected and baseline-subtracted proportions.
+
+```{r empiricalboxplots_vs_truth,message=FALSE,warning=FALSE}
+ggplot(data.frame(p,ns1=s$ns1))+
+  geom_boxplot(outlier.color=NA)+
+  geom_jitter(aes(col=fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))<0.01))+
+  aes(x=truth,y=ps1-pu1-ps0+pu0)+
+  scale_color_discrete("Predicted Response\n(1% FDR)",labels=c("NR","R")) +
+  theme_classic() +
+  scale_x_discrete(labels=c("NR","R")) +
+  scale_y_continuous("Background and baseline adjusted proportion.")
+```
+
+We can generate ROCs comparing MIMOSA2 positivity calls against a test for a difference in log-odds ratios.
+The ROC curves show that MIMOSA2 performs better than a one-sided test for a difference in log-odds ratios.
+
+```{r ROC,fig.width=6,fig.height=6}
+ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
+
+toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
+ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
+```
+
+```{r include=FALSE,echo=FALSE,ratevthreshold,fig.width=6,fig.height=4.5}
+fdr = function (z)
+{
+  fdr <- rep(0, nrow(z))
+  o <- order(z[, 2], decreasing = TRUE)
+  fdr[o] <- (cumsum(z[o, 1])/1:nrow(z))
+  return(fdr)
+}
+RRvTh = function(thresh,truth,add=FALSE,lty=3,...){
+  th = thresh
+  o = order(th,decreasing=FALSE)
+  tpc = cumsum(truth[o])
+  fpc = cumsum(!truth[o])
+  tpc = tpc/sum(truth)
+  fpc = fpc/sum(!truth)
+  if(add){
+    lines(y=tpc,th[o],type="l",ylab="Rate",xlab="FDR Threshold",col="blue",lty=ifelse(add,lty,1))
+  }else{
+    plot(y=tpc,th[o],type="l",ylab="Rate",xlab="FDR Threshold",col="blue",...)
+  }
+  lines(y=fpc,th[o],type="l",col="red",lty=ifelse(add,lty,1))
+}
+RRvTh(fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4]))),s$truth%in%c("R1","R2","R3","R4"),xlim=c(0,0.1),ylim=c(0,1))
+RRvTh(ortest,s$truth%in%c("R1","R2","R3","R4"),add=TRUE)
+legend("topright",lty=c(1,2),c("MIMOSA","OR Test"))
+```
+
+
+MIMOSA2 also provides better control of the nominal false discovery rate.
+
+```{r,echo=FALSE,nomfdr,fig.width=6,fig.height=6}
+fdr_th = fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))
+o = order(fdr_th,decreasing=FALSE)
+plot(y=fdr_th[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:length(s$truth),type="l",ylab="observed fdr",xlab="nominal fdr",xlim=c(0,1),ylim=c(0,1),col="blue")
+abline(0,1,lty=2)
+o = order(ortest,decreasing=FALSE)
+lines(y=ortest[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="observed fdr",xlab="nominal fdr",col="red")
+abline(0,1,lty=2)
+legend("bottomrigh",c("MIMOSA2","ORTest"),col=c("blue","red"),lty=1)
+```
+
