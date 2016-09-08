@@ -91,7 +91,7 @@ Here we show the empirical background-corrected and baseline-subtracted proporti
 ```{r empiricalboxplots_vs_truth,message=FALSE,warning=FALSE}
 ggplot(data.frame(p,ns1=s$ns1))+
   geom_boxplot(outlier.color=NA)+
-  geom_jitter(aes(col=fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))<0.01))+
+  geom_jitter(aes(col=getResponse(fit,threshold=0.01)))+
   aes(x=truth,y=ps1-pu1-ps0+pu0)+
   scale_color_discrete("Predicted Response\n(1% FDR)",labels=c("NR","R")) +
   theme_classic() +
@@ -105,7 +105,7 @@ The ROC curves show that MIMOSA2 performs better than a one-sided test for a dif
 ```{r ROC,fig.width=6,fig.height=6}
 ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
 
-toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
+toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%like%"^R")
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
@@ -140,12 +140,12 @@ legend("topright",lty=c(1,2),c("MIMOSA","OR Test"))
 MIMOSA2 also provides better control of the nominal false discovery rate.
 
 ```{r,echo=FALSE,nomfdr,fig.width=6,fig.height=6}
-fdr_th = fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))
+fdr_th = getFDR(fit)
 o = order(fdr_th,decreasing=FALSE)
-plot(y=fdr_th[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:length(s$truth),type="l",ylab="observed fdr",xlab="nominal fdr",xlim=c(0,1),ylim=c(0,1),col="blue")
+plot(y=fdr_th[o],x=cumsum(!s$truth[o]%like%c("^R"))/1:length(s$truth),type="l",ylab="observed fdr",xlab="nominal fdr",xlim=c(0,1),ylim=c(0,1),col="blue")
 abline(0,1,lty=2)
 o = order(ortest,decreasing=FALSE)
-lines(y=ortest[o],x=cumsum(!s$truth[o]%in%c("R1","R2","R3","R4"))/1:100,type="l",ylab="observed fdr",xlab="nominal fdr",col="red")
+lines(y=ortest[o],x=cumsum(!s$truth[o]%like%c("^R"))/1:100,type="l",ylab="observed fdr",xlab="nominal fdr",col="red")
 abline(0,1,lty=2)
 legend("bottomrigh",c("MIMOSA2","ORTest"),col=c("blue","red"),lty=1)
 ```

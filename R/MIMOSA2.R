@@ -154,5 +154,55 @@ MIMOSA2 = function(Ntot,ns1,nu1,ns0,nu0,tol=1e-8,maxit=100,verbose=FALSE){
   colnames(inds) = 1:K
   l = list(z, inds, pi_est, thetahat,ps1_hat,ps0_hat,pu1_hat,pu0_hat,Ntot,ns1,nu1,ns0,nu0)
   names(l) = c("z","inds","pi_est","thetahat","ps1_hat","ps0_hat","pu1_hat","pu0_hat","Ntot","ns1","nu1","ns0","nu0")
+  #set the class
+  class(l)=c("list","MIMOSA2model")
   return(l)
 }
+
+#' @name getZ
+#' @title get probabilities of response
+#' @param x \code{MIMOSA2model} object
+#' @description Return the probabilities of response from a MIMOSA2 model.
+#' @export
+getZ = function(x){
+  if(inherits(x,"MIMOSA2model")){
+    z = rowSums(x$z[,1:4])
+    return(cbind(P.NR=1-z,P.R=z))
+  }else{
+    stop("x must be a MIMOSA2model object.")
+  }
+}
+
+.fdr = function (z)
+{
+  fdr <- rep(0, nrow(z))
+  o <- order(z[, 2], decreasing = TRUE)
+  fdr[o] <- (cumsum(z[o, 1])/1:nrow(z))
+  return(fdr)
+}
+
+#' @name getFDR
+#' @title Get the q-values from a MIMOSA2 model
+#' @param x \code{MIMOSA2model} object
+#' @description Return the q-values from a MIMOSA2 model, calculated by the method of Newton et al.
+#' @export
+getFDR = function(x){
+  z = getZ(x)
+  return(.fdr(z))
+}
+
+
+#' @name getResponse
+#' @title Get response calls from a MIMOSA2 model
+#' @param x \code{MIMOSA2model} object
+#' @param threshold \code{numeric} fdr threshold (default 0.01 i.e. 1%)
+#' @description Return the response calls from a MIMOSA2 model at a given fdr threshold.
+#' @export
+getResponse = function(x,threshold=0.01){
+  if(is.null(threshold)){
+    stop("threshold cannot be NULL")
+  }
+  return(getFDR(x)<threshold)
+}
+
+

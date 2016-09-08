@@ -76,7 +76,7 @@ Here we show the empirical background-corrected and baseline-subtracted proporti
 ``` r
 ggplot(data.frame(p,ns1=s$ns1))+
   geom_boxplot(outlier.color=NA)+
-  geom_jitter(aes(col=fdr(cbind(1-rowSums(fit$z[,1:4]),rowSums(fit$z[,1:4])))<0.01))+
+  geom_jitter(aes(col=getResponse(fit,threshold=0.01)))+
   aes(x=truth,y=ps1-pu1-ps0+pu0)+
   scale_color_discrete("Predicted Response\n(1% FDR)",labels=c("NR","R")) +
   theme_classic() +
@@ -91,7 +91,7 @@ We can generate ROCs comparing MIMOSA2 positivity calls against a test for a dif
 ``` r
 ortest = with(s,ORTest(Ntot,ns1,nu1,ns0,nu0))
 
-toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%in%c("R1","R2","R3","R4"))
+toplot = ROC(or_test=ortest, fit=fit,truth=s$truth%like%"^R")
 ROCPlot(toplot)+guides(color=guide_legend(nrow=2))
 ```
 
