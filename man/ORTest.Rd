@@ -37,4 +37,3 @@ or_result = ORTest(Ntot = s$Ntot, ns1 = s$ns1, nu1 = s$nu1, nu0 = s$nu0, ns0 = s
 \seealso{
 \link{MIMOSA2}
 }
-

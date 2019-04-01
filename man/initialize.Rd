@@ -30,4 +30,3 @@ Initialize model parameters
 \details{
 The \code{thetahat} are the initial hyperparameter estimates. The \code{pi_est} are the initial mixing proportions. The \code{inds} are the initial assignments of data to model components.
 }
-

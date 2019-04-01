@@ -21,4 +21,3 @@ No bounds checking is done on the input
 \examples{
 logit(0.5)
 }
-

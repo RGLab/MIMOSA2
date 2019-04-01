@@ -27,4 +27,3 @@ ROCPlot(roc)
 \seealso{
 \link{MIMOSA2}
 }
-

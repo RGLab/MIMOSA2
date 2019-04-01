@@ -22,4 +22,3 @@ Beta-binomial log likelihood
 \examples{
 bbll(c(logit(0.5),log(100)),100,50)
 }
-

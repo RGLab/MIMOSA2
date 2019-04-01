@@ -13,6 +13,7 @@
 #' @return \code{list} of fitted model parameters with components \code{z} \code{inds} \code{thetahat} \code{pi_est}
 #' @export
 #' @importFrom matrixStats logSumExp
+#' @importFrom stats dgamma dnorm fisher.test pnorm rbeta rbinom runif
 #' @import data.table ggplot2 optimx
 #' @seealso \link{ORTest} \link{ROC} \link{ROCPlot} \link{Boxplot} \link{simulate_MIMOSA2} \link{logit} \link{invlogit}
 #' @examples
@@ -196,7 +197,7 @@ getFDR = function(x){
 #' @title Get response calls from a MIMOSA2 model
 #' @param x \code{MIMOSA2model} object
 #' @param threshold \code{numeric} fdr threshold (default 0.01 i.e. 1%)
-#' @description Return the response calls from a MIMOSA2 model at a given fdr threshold.
+#' Return the response calls from a MIMOSA2 model at a given fdr threshold.
 #' @export
 getResponse = function(x,threshold=0.01){
   if(is.null(threshold)){

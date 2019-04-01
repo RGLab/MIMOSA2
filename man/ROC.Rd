@@ -28,4 +28,3 @@ ROC(or_test = or_result, fit=R, truth = s$truth\%in\%c("R1","R2","R3","R4"))
 \seealso{
 \link{MIMOSA2}
 }
-

@@ -25,4 +25,3 @@ Boxplot(obj = R,truth = s$truth)
 \seealso{
 \link{MIMOSA2}
 }
-

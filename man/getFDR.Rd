@@ -12,4 +12,3 @@ getFDR(x)
 \description{
 Return the q-values from a MIMOSA2 model, calculated by the method of Newton et al.
 }
-

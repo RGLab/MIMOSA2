@@ -9,9 +9,9 @@ getResponse(x, threshold = 0.01)
 \arguments{
 \item{x}{\code{MIMOSA2model} object}
 
-\item{threshold}{\code{numeric} fdr threshold (default 0.01 i.e. 1%)}
+\item{threshold}{\code{numeric} fdr threshold (default 0.01 i.e. 1%)
+Return the response calls from a MIMOSA2 model at a given fdr threshold.}
 }
 \description{
-Return the response calls from a MIMOSA2 model at a given fdr threshold.
+Get response calls from a MIMOSA2 model
 }
-

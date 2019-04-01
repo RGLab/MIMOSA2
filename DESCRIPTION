@@ -1,6 +1,6 @@
 Package: MIMOSA2
 Title: MIMOSA with baseline
-Version: 0.99.0
+Version: 0.99.0.900
 Author: Greg Finak
 Maintainer: Greg Finak <gfinak@fredhutch.org> 
 Description: Fits a MIMOSA model to data with baseline.
@@ -17,4 +17,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+Encoding: UTF-8
+RoxygenNote: 6.1.1

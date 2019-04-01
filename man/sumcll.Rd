@@ -19,4 +19,3 @@ Calculate the complete data log-likelihood across all observations.
 \seealso{
 \link{bbll} \link{MIMOSA2}
 }
-

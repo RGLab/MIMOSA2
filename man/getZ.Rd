@@ -12,4 +12,3 @@ getZ(x)
 \description{
 Return the probabilities of response from a MIMOSA2 model.
 }
-

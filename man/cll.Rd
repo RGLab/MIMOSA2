@@ -28,4 +28,3 @@ Calcualtes the  log-likelihood for each observation at each model component
 \seealso{
 \link{bbll} \link{MIMOSA2}
 }
-
