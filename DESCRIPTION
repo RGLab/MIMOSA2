@@ -13,6 +13,7 @@ Imports:
     ggplot2,
     optimx,
     matrixStats,
+    minqa
 Suggests:
     knitr,
     rmarkdown
