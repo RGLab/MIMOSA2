@@ -1,6 +1,6 @@
 ICS Modeling with baseline
 ================
-Greg Finak <greg@ozette.com>
+Greg Finak <greg.finak@gmail.com>
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 Background
